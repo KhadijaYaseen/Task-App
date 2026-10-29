@@ -1,81 +1,64 @@
 import 'package:flutter/material.dart';
 
-/// Hallmark "Cobalt" Modern Minimalist Design System
-/// Enforces high-contrast hierarchy, clean geometric lines, and structured cards.
+/// Authentic Hallmark "Cobalt" Design System
+/// Extracted directly from usehallmark.com/themes/cobalt
 class CobaltTheme {
-  // Brand Colors
-  static const Color slate950 = Color(0xFF020617);
-  static const Color slate900 = Color(0xFF0F172A);
-  static const Color slate800 = Color(0xFF1E293B);
-  static const Color slate700 = Color(0xFF334155);
-  static const Color slate600 = Color(0xFF475569);
-  static const Color slate500 = Color(0xFF64748B);
-  static const Color slate400 = Color(0xFF94A3B8);
-  static const Color slate200 = Color(0xFFE2E8F0);
-  static const Color slate100 = Color(0xFFF1F5F9);
-  static const Color slate50 = Color(0xFFF8FAFC);
+  // Surface / Canvas Palette
+  static const Color paper = Color(0xFFFAFBFC);
+  static const Color paper2 = Color(0xFFF1F5F9);
+  static const Color paper3 = Color(0xFFE2E8F0);
 
-  // Cobalt Electric Accent
-  static const Color cobaltBlue = Color(0xFF2563EB);
-  static const Color cobaltHover = Color(0xFF1D4ED8);
-  static const Color cobaltLight = Color(0xFFEFF6FF);
+  // Typography Ink Palette
+  static const Color ink = Color(0xFF0F172A);
+  static const Color ink2 = Color(0xFF334155);
+  static const Color muted = Color(0xFF64748B);
+  static const Color rule = Color(0xFFE2E8F0);
+  static const Color rule2 = Color(0xFFCBD5E1);
 
-  // Semantic Status Colors
-  static const Color statusTodo = Color(0xFF64748B);
-  static const Color statusInProgress = Color(0xFFD97706);
-  static const Color statusReview = Color(0xFF7C3AED);
-  static const Color statusDone = Color(0xFF16A34A);
+  // Cobalt Electric Accent Palette
+  static const Color accent = Color(0xFF1D4ED8); // oklch(52% 0.19 258)
+  static const Color accentHover = Color(0xFF1E40AF);
+  static const Color accentEdge = Color(0xFF172554); // 3D bottom keycap shadow
+  static const Color accentWash = Color(0xFFEFF6FF);
 
-  // Priority Colors
-  static const Color priorityUrgent = Color(0xFFEF4444);
-  static const Color priorityHigh = Color(0xFFF97316);
-  static const Color priorityMedium = Color(0xFFF59E0B);
-  static const Color priorityLow = Color(0xFF64748B);
+  // Neutral Keycap Palette
+  static const Color keyFace = Color(0xFFFFFFFF);
+  static const Color keyEdge = Color(0xFFCBD5E1); // 3D neutral keycap edge
+
+  // Status & Semantic Colors
+  static const Color statusSuccess = Color(0xFF16A34A);
+  static const Color statusWarning = Color(0xFFD97706);
+  static const Color statusError = Color(0xFFDC2626);
+  static const Color statusInfo = Color(0xFF2563EB);
+
+  // Geometry
+  static const double radiusCard = 8.0;
+  static const double radiusInput = 6.0;
+  static const double radiusPill = 20.0;
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: slate50,
-      colorScheme: ColorScheme.light(
-        primary: slate900,
-        secondary: cobaltBlue,
+      scaffoldBackgroundColor: paper,
+      colorScheme: const ColorScheme.light(
+        primary: accent,
         surface: Colors.white,
-        error: priorityUrgent,
+        error: statusError,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 0.5,
+        scrolledUnderElevation: 1,
         centerTitle: false,
-        iconTheme: IconThemeData(color: slate900),
+        iconTheme: IconThemeData(color: ink),
         titleTextStyle: TextStyle(
-          color: slate900,
-          fontSize: 18,
+          color: ink,
+          fontSize: 17,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
+          letterSpacing: -0.4,
         ),
       ),
-      cardTheme: CardThemeData(
-        color: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: slate200, width: 1),
-        ),
-        margin: EdgeInsets.zero,
-      ),
-      chipTheme: ChipThemeData(
-        backgroundColor: slate100,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: slate200, width: 1),
-        ),
-        labelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: slate700,
-        ),
-      ),
+      fontFamily: 'Roboto',
     );
   }
 }
