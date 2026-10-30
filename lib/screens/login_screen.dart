@@ -20,9 +20,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   int _selectedTab = 0; // 0: Admin / Lead, 1: Team Member
 
-  // Admin Form Controllers
-  final _adminIdController = TextEditingController(text: 'admin');
-  final _adminPasswordController = TextEditingController(text: 'admin123');
+  // Admin Form Controllers (clean empty fields, no pre-filled text)
+  final _adminIdController = TextEditingController();
+  final _adminPasswordController = TextEditingController();
   String? _adminErrorMessage;
   bool _obscurePassword = true;
 
@@ -347,10 +347,20 @@ class _LoginScreenState extends State<LoginScreen> {
         // Admin ID Field
         TextField(
           controller: _adminIdController,
+          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            labelText: 'Admin ID or Email',
-            hintText: 'admin or saleem',
+            labelText: 'Admin Username / ID',
+            hintText: 'e.g. admin or saleem',
             prefixIcon: const Icon(Icons.person_outline, size: 18, color: CobaltTheme.muted),
+            suffixIcon: _adminIdController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 16, color: CobaltTheme.muted),
+                    onPressed: () {
+                      _adminIdController.clear();
+                      setState(() {});
+                    },
+                  )
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
               borderSide: const BorderSide(color: CobaltTheme.rule2),
@@ -372,17 +382,31 @@ class _LoginScreenState extends State<LoginScreen> {
         TextField(
           controller: _adminPasswordController,
           obscureText: _obscurePassword,
+          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: 'Admin Password',
-            hintText: '••••••••',
+            hintText: 'Enter password',
             prefixIcon: const Icon(Icons.lock_outline, size: 18, color: CobaltTheme.muted),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-                color: CobaltTheme.muted,
-              ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_adminPasswordController.text.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.clear, size: 16, color: CobaltTheme.muted),
+                    onPressed: () {
+                      _adminPasswordController.clear();
+                      setState(() {});
+                    },
+                  ),
+                IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 18,
+                    color: CobaltTheme.muted,
+                  ),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ],
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),

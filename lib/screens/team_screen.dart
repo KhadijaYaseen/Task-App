@@ -35,7 +35,7 @@ class _TeamScreenState extends State<TeamScreen> {
     BuildContext context, {
     required VoidCallback onAuthorized,
   }) {
-    final adminIdController = TextEditingController(text: 'admin');
+    final adminIdController = TextEditingController();
     final adminPassController = TextEditingController();
     String? errorMsg;
 

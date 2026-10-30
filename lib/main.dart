@@ -171,7 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String actionDescription,
     required VoidCallback onAuthorized,
   }) {
-    final adminIdController = TextEditingController(text: 'admin');
+    final adminIdController = TextEditingController();
     final adminPassController = TextEditingController();
     String? errorMsg;
 
@@ -1024,19 +1024,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _showAddTaskModal(BuildContext context) {
     final titleController = TextEditingController();
-    final projectController = TextEditingController(text: 'Task-App');
+    final projectController = TextEditingController();
     TaskPriority selectedPriority = TaskPriority.high;
     Employee selectedAssignee = widget.employees.firstWhere(
       (e) => e.id == Employee.khadija.id,
       orElse: () => widget.employees.first,
     );
+    String? modalError;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
         return StatefulBuilder(
@@ -1045,8 +1046,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.only(
                 left: 20,
                 right: 20,
-                top: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1055,13 +1056,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'New Milestone Deliverable',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: CobaltTheme.ink,
-                        ),
+                      const Row(
+                        children: [
+                          Icon(Icons.add_task_outlined, size: 20, color: CobaltTheme.accent),
+                          SizedBox(width: 8),
+                          Text(
+                            'Create New Task',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: CobaltTheme.ink,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
@@ -1069,36 +1077,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Assign a milestone deliverable exclusively to one team member',
+                    style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
+                  ),
+                  const SizedBox(height: 18),
+
+                  if (modalError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        border: Border.all(color: const Color(0xFFFCA5A5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, size: 16, color: CobaltTheme.statusError),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              modalError!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: CobaltTheme.statusError,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // Clean Generic Task Title
                   TextField(
                     controller: titleController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: 'Deliverable Title',
-                      hintText: 'e.g. Implement Role-Based Login UI',
+                      labelText: 'Task Title',
+                      hintText: 'Enter task title',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                         borderSide: const BorderSide(color: CobaltTheme.rule2),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: projectController,
-                    decoration: InputDecoration(
-                      labelText: 'Project Name',
-                      hintText: 'e.g. Task-App',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                     ),
                   ),
                   const SizedBox(height: 14),
 
-                  // Assignee Dynamic Selector
+                  // Clean Generic Project Name
+                  TextField(
+                    controller: projectController,
+                    decoration: InputDecoration(
+                      labelText: 'Project Name',
+                      hintText: 'Enter project name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        borderSide: const BorderSide(color: CobaltTheme.rule2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Single Assignee Selector
                   const Text(
-                    'Assignee (Team Member)',
+                    'Assign To (Single Team Member)',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -1107,7 +1154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
@@ -1165,7 +1212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   const Text(
                     'Priority',
@@ -1204,23 +1251,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
                   SizedBox(
                     width: double.infinity,
                     child: CobaltKey(
-                      label: 'Assign Milestone',
+                      label: 'Assign Task',
                       icon: Icons.assignment_turned_in,
                       variant: CobaltKeyVariant.primary,
                       onPressed: () {
-                        if (titleController.text.trim().isNotEmpty) {
-                          _addNewTask(
-                            title: titleController.text.trim(),
-                            projectName: projectController.text.trim(),
-                            priority: selectedPriority,
-                            assignee: selectedAssignee,
-                          );
-                          Navigator.pop(ctx);
+                        final title = titleController.text.trim();
+                        final proj = projectController.text.trim().isEmpty
+                            ? 'General'
+                            : projectController.text.trim();
+
+                        if (title.isEmpty) {
+                          setModalState(() {
+                            modalError = 'Please enter a task title.';
+                          });
+                          return;
                         }
+
+                        // Single Assignee & Exclusivity Rule:
+                        // A task once assigned cannot be assigned to another person!
+                        final duplicate = widget.tasks.any((t) =>
+                            t.title.trim().toLowerCase() == title.toLowerCase() &&
+                            t.status != TaskStatus.done);
+
+                        if (duplicate) {
+                          final existing = widget.tasks.firstWhere((t) =>
+                              t.title.trim().toLowerCase() == title.toLowerCase() &&
+                              t.status != TaskStatus.done);
+                          setModalState(() {
+                            modalError =
+                                'Task "$title" is already assigned to ${existing.assignee.name}. Each task can only be assigned to one team member.';
+                          });
+                          return;
+                        }
+
+                        _addNewTask(
+                          title: title,
+                          projectName: proj,
+                          priority: selectedPriority,
+                          assignee: selectedAssignee,
+                        );
+                        Navigator.pop(ctx);
                       },
                     ),
                   ),

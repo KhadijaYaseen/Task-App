@@ -10,7 +10,9 @@ void main() {
     expect(find.text('👑 Admin / Lead'), findsOneWidget);
     expect(find.text('🚀 Team Member'), findsOneWidget);
 
-    // 2. Perform Admin Login
+    // 2. Perform Admin Login with credentials
+    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Admin Password'), 'admin123');
     await tester.tap(find.text('Login as Tech Lead (Saleem)'));
     await tester.pumpAndSettle();
 
@@ -26,7 +28,8 @@ void main() {
   testWidgets('Admin Login validates incorrect credentials', (WidgetTester tester) async {
     await tester.pumpWidget(const TaskApp());
 
-    // Enter wrong password
+    // Enter wrong credentials
+    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
     await tester.enterText(find.bySemanticsLabel('Admin Password'), 'wrongpass');
     await tester.tap(find.text('Login as Tech Lead (Saleem)'));
     await tester.pumpAndSettle();
