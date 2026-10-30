@@ -36,6 +36,32 @@ class CobaltTheme {
   static const double radiusInput = 6.0;
   static const double radiusPill = 20.0;
 
+  // Compatibility Aliases (prevents undefined getter errors across versions)
+  static const Color slate950 = ink;
+  static const Color slate900 = ink;
+  static const Color slate800 = ink2;
+  static const Color slate700 = ink2;
+  static const Color slate600 = muted;
+  static const Color slate500 = muted;
+  static const Color slate400 = muted;
+  static const Color slate200 = rule;
+  static const Color slate100 = paper2;
+  static const Color slate50 = paper;
+
+  static const Color cobaltBlue = accent;
+  static const Color cobaltHover = accentHover;
+  static const Color cobaltLight = accentWash;
+
+  static const Color statusTodo = muted;
+  static const Color statusInProgress = statusWarning;
+  static const Color statusReview = accent;
+  static const Color statusDone = statusSuccess;
+
+  static const Color priorityUrgent = statusError;
+  static const Color priorityHigh = statusWarning;
+  static const Color priorityMedium = statusWarning;
+  static const Color priorityLow = muted;
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
