@@ -58,11 +58,9 @@ class _CobaltKeyState extends State<CobaltKey> {
     final double lift = _isPressed ? 1.0 : 3.0;
 
     return GestureDetector(
+      onTap: widget.onPressed,
       onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onPressed();
-      },
+      onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 70),
@@ -94,13 +92,17 @@ class _CobaltKeyState extends State<CobaltKey> {
               Icon(widget.icon, size: widget.isSmall ? 15 : 18, color: fg),
               const SizedBox(width: 6),
             ],
-            Text(
-              widget.label,
-              style: TextStyle(
-                color: fg,
-                fontSize: widget.isSmall ? 12 : 14,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
+            Flexible(
+              child: Text(
+                widget.label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: TextStyle(
+                  color: fg,
+                  fontSize: widget.isSmall ? 12 : 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
           ],

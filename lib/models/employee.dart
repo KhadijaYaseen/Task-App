@@ -3,14 +3,16 @@ class Employee {
   final String name;
   final String role;
   final String initials;
-  final String? avatarUrl;
+  final String? email;
+  final bool isAdmin;
 
   const Employee({
     required this.id,
     required this.name,
     required this.role,
     required this.initials,
-    this.avatarUrl,
+    this.email,
+    this.isAdmin = false,
   });
 
   static const Employee saleem = Employee(
@@ -18,6 +20,8 @@ class Employee {
     name: 'Saleem',
     role: 'Tech Lead / Manager',
     initials: 'SL',
+    email: 'saleem@khawajalabs.com',
+    isAdmin: true,
   );
 
   static const Employee khadija = Employee(
@@ -25,6 +29,8 @@ class Employee {
     name: 'Khadija Yaseen',
     role: 'Mobile Engineer (Intern)',
     initials: 'KY',
+    email: 'khadija@khawajalabs.com',
+    isAdmin: false,
   );
 
   static const Employee hamza = Employee(
@@ -32,6 +38,8 @@ class Employee {
     name: 'Hamza Khan',
     role: 'UI/UX Designer',
     initials: 'HK',
+    email: 'hamza@khawajalabs.com',
+    isAdmin: false,
   );
 
   static const Employee zain = Employee(
@@ -39,7 +47,9 @@ class Employee {
     name: 'Zain Ahmed',
     role: 'Backend Developer',
     initials: 'ZA',
+    email: 'zain@khawajalabs.com',
+    isAdmin: false,
   );
 
-  static List<Employee> get allEmployees => [saleem, khadija, hamza, zain];
+  static List<Employee> get initialEmployees => [saleem, khadija, hamza, zain];
 }
