@@ -1,58 +1,69 @@
-# Task-App (Company Project & Task Manager)
+# Task-App (Company Project & Milestone Task Manager)
 
-A modern, high-contrast, offline-ready **Project & Task Management Mobile Application** built with **Flutter & Dart**, styled using Hallmark's **Cobalt (Modern Minimal)** design system.
-
----
-
-## 📱 Core Features & Architecture (Module 1)
-
-### 1. Executive Metric Summary
-* **Active Tasks Counter:** Real-time visibility into open company work items.
-* **In-Progress Workload:** Tracks active engineering sprint items.
-* **Completed Milestones:** Velocity metrics on closed deliverables.
-
-### 2. Projects Hub & Progress Tracking
-* Horizontal carousel displaying active company projects.
-* Real-time milestone progress bar (`15/20 Tasks • 75%`).
-* Project Health Status indicators (🟢 *On Track*, 🟡 *At Risk*, 🔴 *Delayed*).
-
-### 3. Smart Filtering & Employee Assignment
-* **One-Tap Filters:** `All Tasks`, `My Tasks (Khadija)`, `In Progress`, `High Priority`.
-* **Assignee Avatars & Badges:** Instant team member ownership (Saleem, Khadija, Hamza, Zain).
-* **Priority Engine:** High-contrast Urgent, High, Medium, and Low indicators.
+A modern, high-contrast, offline-ready **Company Task & Milestone Management Mobile Application** built with **Flutter & Dart**, styled using Hallmark's authentic **Cobalt (Modern Minimal)** design system.
 
 ---
 
-## 🎨 Design System: Hallmark "Cobalt"
-* **Tokens:** Strict separation of design tokens in `lib/theme/cobalt_theme.dart`.
-* **Palette:** Deep Slate 900 (`#0F172A`), Pure White cards, and Electric Cobalt Accent (`#2563EB`).
-* **Micro-Interactions:** Subtle elevation, geometric border radii, and accessible high-contrast typography.
+## 📖 Documentation & Guides
+* **Comprehensive User & Admin Guide:** [USER_GUIDE.md](USER_GUIDE.md)
+* **Company Repository:** [https://github.com/khawajaalabs/Task-App](https://github.com/khawajaalabs/Task-App)
+
+---
+
+## 📱 Core Features & Architecture
+
+### 1. Role-Based Authentication (RBAC)
+* **Tech Lead / Admin Mode (Saleem):**
+  * Secure sign-in using Admin ID (`admin` / `saleem`) and Password (`admin123` / `saleem123`).
+  * Privileges: Full rights to dynamically register employees, create milestones, and assign tasks.
+* **Team Member Mode (Khadija Yaseen, Hamza Khan, Zain Ahmed):**
+  * One-tap authenticated profile selection.
+  * Privileges: Track personal deliverables, update status (`In Progress` ⇄ `Completed`), and browse the company team directory.
+  * **Admin Security Guard:** Prompts for Tech Lead credentials if unauthorized members attempt administrative operations.
+
+### 2. Company Team Roster (Dynamic Member Management)
+* Dynamic employee directory enabling the Tech Lead to add team members with Full Name, Role, and Company Email.
+* Newly registered members immediately become eligible assignees across task creation forms and profile logins.
+
+### 3. Milestone Task Assignment & Single-Assignee Exclusivity
+* Milestone creation with Priority levels (**URGENT**, **HIGH**, **MEDIUM**, **LOW**).
+* **Single-Assignee Exclusivity:** Guarantees that deliverables cannot be duplicated or ambiguously assigned across multiple members.
+
+### 4. Hallmark "Cobalt" Modern Minimalist Design System
+* **Tactile 3D Keycaps:** Physical button depression (`.key`, `.key--primary`) with solid border shadows.
+* **Jump Search Bar (`⌘ K`):** Quick real-time filtering across active projects and task titles.
+* **Executive Metric Ledger:** Instant overview of Active, In Progress, and Completed milestones.
+* **Color Palette:** Pure paper `#FAFBFC`, Deep slate ink `#0F172A`, Crisp borders `#CBD5E1`, and Electric Cobalt `#1D4ED8`.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-* Flutter SDK (v3.47+ recommended)
-* Dart SDK (v3.13+)
-* Android Emulator or physical device
+### Installing via Pre-built APK
+A standalone, production-optimized APK is available in the root:
+```bash
+adb install -r TaskApp.apk
+```
 
-### Running the App
+### Running from Source
 ```bash
 # 1. Fetch dependencies
 flutter pub get
 
-# 2. Run automated tests
+# 2. Run automated tests (100% green)
 flutter test
 
-# 3. Launch application on emulator
+# 3. Launch application on emulator or connected device
 flutter run
 ```
 
 ---
 
-## 🧪 Automated Tests
+## 🧪 Automated Testing
 ```bash
 flutter test
 ```
 All unit and widget test suites pass with 0 errors.
+
+---
+*© 2026 Khawaja Labs. Engineered for internal operations and team excellence.*
