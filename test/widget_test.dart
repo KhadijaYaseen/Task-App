@@ -208,4 +208,63 @@ void main() {
     expect(find.text('Project Alpha'), findsOneWidget);
     expect(find.text('Project Beta'), findsOneWidget);
   });
+
+  testWidgets('Smart Search filters by title, assignee name, and "my task" keyword', (WidgetTester tester) async {
+    const saleem = Employee.saleem;
+    const khadija = Employee.khadija;
+
+    final task1 = TaskItem(
+      id: 'task-1',
+      title: 'Fix Authentication',
+      description: 'Fix token expiry',
+      projectId: 'p1',
+      projectName: 'Security',
+      assignee: saleem,
+      status: TaskStatus.inProgress,
+      priority: TaskPriority.urgent,
+      dueDate: DateTime.now().add(const Duration(days: 1)),
+    );
+
+    final task2 = TaskItem(
+      id: 'task-2',
+      title: 'Build Search Bar',
+      description: 'Add quick jump filter',
+      projectId: 'p2',
+      projectName: 'UI Engine',
+      assignee: khadija,
+      status: TaskStatus.todo,
+      priority: TaskPriority.high,
+      dueDate: DateTime.now().add(const Duration(days: 3)),
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: DashboardScreen(
+        currentUser: khadija,
+        employees: const [saleem, khadija],
+        tasks: [task1, task2],
+        onLogout: () {},
+        onAddEmployee: (_) {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // Initially both tasks visible (All view)
+    expect(find.text('Fix Authentication'), findsOneWidget);
+    expect(find.text('Build Search Bar'), findsOneWidget);
+
+    // Search "my task" -> should filter only Khadija's task
+    await tester.enterText(find.widgetWithText(TextField, 'Jump to a task or project...'), 'my task');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Build Search Bar'), findsOneWidget);
+    expect(find.text('Fix Authentication'), findsNothing);
+
+    // Tap clear (x) button
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    // Both visible again
+    expect(find.text('Fix Authentication'), findsOneWidget);
+    expect(find.text('Build Search Bar'), findsOneWidget);
+  });
 }

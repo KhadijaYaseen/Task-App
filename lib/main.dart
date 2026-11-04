@@ -89,15 +89,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentTabIndex = 0; // 0: Tasks, 1: Analytics
   int _selectedFilterIndex = 0; // 0: All, 1: My Tasks, 2: In Progress, 3: Completed
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<TaskItem> get _filteredTasks {
     List<TaskItem> list = widget.tasks;
     if (_searchQuery.trim().isNotEmpty) {
-      list = list
-          .where((t) =>
-              t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              t.projectName.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
+      final q = _searchQuery.trim().toLowerCase();
+      final isSelfIntent = q == 'my task' || q == 'my tasks' || q == 'mine' || q == 'me';
+      list = list.where((t) {
+        if (isSelfIntent) {
+          return t.assignee.id == widget.currentUser.id;
+        }
+        return t.title.toLowerCase().contains(q) ||
+            t.projectName.toLowerCase().contains(q) ||
+            t.assignee.name.toLowerCase().contains(q) ||
+            t.description.toLowerCase().contains(q);
+      }).toList();
     }
     switch (_selectedFilterIndex) {
       case 1:
@@ -885,6 +898,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
+              controller: _searchController,
               onChanged: (val) => setState(() => _searchQuery = val),
               decoration: const InputDecoration(
                 hintText: 'Jump to a task or project...',
@@ -895,6 +909,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchController.clear();
+                setState(() => _searchQuery = '');
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(Icons.close, size: 16, color: CobaltTheme.muted),
+              ),
+            ),
           // ⌘ K tactile keycap badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
