@@ -7,11 +7,13 @@ import '../theme/cobalt_theme.dart';
 class StatsScreen extends StatefulWidget {
   final List<TaskItem> tasks;
   final List<Employee> employees;
+  final VoidCallback? onBackToTasks;
 
   const StatsScreen({
     super.key,
     required this.tasks,
     required this.employees,
+    this.onBackToTasks,
   });
 
   @override
@@ -37,6 +39,36 @@ class _StatsScreenState extends State<StatsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.onBackToTasks != null) ...[
+            InkWell(
+              onTap: widget.onBackToTasks,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: CobaltTheme.rule2),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.arrow_back_rounded, size: 14, color: CobaltTheme.accent),
+                    SizedBox(width: 6),
+                    Text(
+                      'Back to Tasks Dashboard',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
           // Header section matching TaskNexus
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

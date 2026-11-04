@@ -17,12 +17,12 @@ void main() {
     await tester.tap(find.text('Login as Tech Lead (Saleem)'));
     await tester.pumpAndSettle();
 
-    // 3. Verify Dashboard Screen rendered with Cobalt features & bottom navigation
+    // 3. Verify Dashboard Screen rendered with Cobalt features & navigation tabs
     expect(find.text('No Active Tasks'), findsOneWidget);
     expect(find.text('+ New Task'), findsOneWidget);
     expect(find.text('Jump to a task or project...'), findsOneWidget);
-    expect(find.text('Tasks'), findsOneWidget);
-    expect(find.text('Analytics'), findsOneWidget);
+    expect(find.text('Tasks'), findsWidgets);
+    expect(find.text('Analytics'), findsWidgets);
 
     // 4. Verify Active Role Banner indicates Saleem
     expect(find.textContaining('Saleem'), findsWidgets);
@@ -124,7 +124,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Switch to Analytics Tab
-    await tester.tap(find.text('Analytics'));
+    await tester.tap(find.text('Analytics').first);
     await tester.pumpAndSettle();
 
     // Verify Task Summary header and metrics

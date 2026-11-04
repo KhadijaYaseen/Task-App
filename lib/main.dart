@@ -471,37 +471,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: CobaltTheme.paper,
       appBar: AppBar(
         titleSpacing: 16,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-              decoration: BoxDecoration(
-                color: CobaltTheme.accentWash,
-                borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                border: Border.all(
-                  color: CobaltTheme.accentHover.withValues(alpha: 0.2),
-                ),
-              ),
-              child: const Text(
-                '▸',
-                style: TextStyle(
-                  color: CobaltTheme.accent,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+        title: InkWell(
+          onTap: () {
+            setState(() {
+              _currentTabIndex = 0;
+            });
+          },
+          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_currentTabIndex == 1) ...[
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: CobaltTheme.paper2,
+                      borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                      border: Border.all(color: CobaltTheme.rule2),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: CobaltTheme.ink,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Back to Tasks',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: CobaltTheme.ink,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: CobaltTheme.accentWash,
+                      borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                      border: Border.all(
+                        color: CobaltTheme.accentHover.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: const Text(
+                      '▸',
+                      style: TextStyle(
+                        color: CobaltTheme.accent,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Company Tasks',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: CobaltTheme.ink,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(width: 8),
-            const Text(
-              'Company Tasks',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: CobaltTheme.ink,
-                letterSpacing: -0.4,
-              ),
-            ),
-          ],
+          ),
         ),
         actions: [
           // Team Roster Shortcut
@@ -535,25 +573,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 8),
 
-          // New Task Tactile Keycap
+          // Action Keycap: "+ New Task" on Tasks tab, "View Tasks" on Analytics tab
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: CobaltKey(
-              label: '+ New Task',
-              isSmall: true,
-              variant: CobaltKeyVariant.primary,
-              onPressed: _onAddTaskPressed,
-            ),
+            child: _currentTabIndex == 0
+                ? CobaltKey(
+                    label: '+ New Task',
+                    isSmall: true,
+                    variant: CobaltKeyVariant.primary,
+                    onPressed: _onAddTaskPressed,
+                  )
+                : CobaltKey(
+                    label: 'Tasks',
+                    icon: Icons.checklist_rounded,
+                    isSmall: true,
+                    variant: CobaltKeyVariant.neutral,
+                    onPressed: () {
+                      setState(() {
+                        _currentTabIndex = 0;
+                      });
+                    },
+                  ),
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: CobaltTheme.rule, height: 1),
+          preferredSize: const Size.fromHeight(44),
+          child: Column(
+            children: [
+              Container(color: CobaltTheme.rule, height: 1),
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _currentTabIndex = 0),
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _currentTabIndex == 0 ? CobaltTheme.accentWash : Colors.transparent,
+                            borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                            border: Border.all(
+                              color: _currentTabIndex == 0 ? CobaltTheme.accent : Colors.transparent,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.assignment_outlined,
+                                size: 15,
+                                color: _currentTabIndex == 0 ? CobaltTheme.accent : CobaltTheme.muted,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Tasks',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _currentTabIndex == 0 ? FontWeight.w800 : FontWeight.w600,
+                                  color: _currentTabIndex == 0 ? CobaltTheme.accent : CobaltTheme.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _currentTabIndex = 1),
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _currentTabIndex == 1 ? CobaltTheme.accentWash : Colors.transparent,
+                            borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                            border: Border.all(
+                              color: _currentTabIndex == 1 ? CobaltTheme.accent : Colors.transparent,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.pie_chart_outline_rounded,
+                                size: 15,
+                                color: _currentTabIndex == 1 ? CobaltTheme.accent : CobaltTheme.muted,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Analytics',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _currentTabIndex == 1 ? FontWeight.w800 : FontWeight.w600,
+                                  color: _currentTabIndex == 1 ? CobaltTheme.accent : CobaltTheme.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(color: CobaltTheme.rule, height: 1),
+            ],
+          ),
         ),
       ),
       body: _currentTabIndex == 0
           ? _buildTasksTab()
-          : StatsScreen(tasks: widget.tasks, employees: widget.employees),
+          : StatsScreen(
+              tasks: widget.tasks,
+              employees: widget.employees,
+              onBackToTasks: () => setState(() => _currentTabIndex = 0),
+            ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
