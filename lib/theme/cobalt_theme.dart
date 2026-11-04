@@ -34,9 +34,11 @@ class CobaltTheme {
   // Geometry
   static const double radiusCard = 8.0;
   static const double radiusInput = 6.0;
+  static const double radiusButton = 6.0;
   static const double radiusPill = 20.0;
 
   // Compatibility Aliases (prevents undefined getter errors across versions)
+  static const Color accentLight = accentWash;
   static const Color slate950 = ink;
   static const Color slate900 = ink;
   static const Color slate800 = ink2;

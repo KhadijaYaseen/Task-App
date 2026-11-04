@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'models/employee.dart';
 import 'models/task_item.dart';
 import 'screens/login_screen.dart';
 import 'screens/team_screen.dart';
+import 'screens/stats_screen.dart';
 import 'theme/cobalt_theme.dart';
 import 'widgets/cobalt_key.dart';
 
@@ -84,6 +86,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentTabIndex = 0; // 0: Tasks, 1: Analytics
   int _selectedFilterIndex = 0; // 0: All, 1: My Tasks, 2: In Progress, 3: Completed
   String _searchQuery = '';
 
@@ -118,6 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String projectName,
     required TaskPriority priority,
     required Employee assignee,
+    required DateTime dueDate,
   }) {
     setState(() {
       widget.tasks.insert(
@@ -131,9 +135,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
           assignee: assignee,
           status: TaskStatus.inProgress,
           priority: priority,
-          dueDate: DateTime.now().add(const Duration(days: 3)),
+          dueDate: dueDate,
         ),
       );
+    });
+  }
+
+  void _editTask({
+    required String id,
+    required String title,
+    required String projectName,
+    required TaskPriority priority,
+    required Employee assignee,
+    required DateTime dueDate,
+  }) {
+    setState(() {
+      final index = widget.tasks.indexWhere((t) => t.id == id);
+      if (index != -1) {
+        widget.tasks[index] = widget.tasks[index].copyWith(
+          title: title,
+          projectName: projectName.isEmpty ? widget.tasks[index].projectName : projectName,
+          priority: priority,
+          assignee: assignee,
+          dueDate: dueDate,
+        );
+      }
     });
   }
 
@@ -144,18 +170,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final newStatus = task.status == TaskStatus.done
             ? TaskStatus.inProgress
             : TaskStatus.done;
-        widget.tasks[index] = TaskItem(
-          id: task.id,
-          title: task.title,
-          description: task.description,
-          projectId: task.projectId,
-          projectName: task.projectName,
-          assignee: task.assignee,
+        widget.tasks[index] = task.copyWith(
           status: newStatus,
-          priority: task.priority,
-          dueDate: task.dueDate,
-          completedSubtasks: task.completedSubtasks,
-          totalSubtasks: task.totalSubtasks,
         );
       }
     });
@@ -165,6 +181,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       widget.tasks.removeWhere((t) => t.id == id);
     });
+  }
+
+  void _confirmDeleteTask(TaskItem task) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(CobaltTheme.radiusCard),
+            side: const BorderSide(color: CobaltTheme.rule2),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.delete_outline, size: 20, color: Color(0xFFDC2626)),
+              SizedBox(width: 8),
+              Text(
+                'Delete Task',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: CobaltTheme.ink,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to delete "${task.title}"? This cannot be undone.',
+            style: const TextStyle(
+              fontSize: 13,
+              color: CobaltTheme.ink2,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: CobaltTheme.muted)),
+            ),
+            CobaltKey(
+              label: 'Delete',
+              isSmall: true,
+              variant: CobaltKeyVariant.primary,
+              onPressed: () {
+                Navigator.pop(ctx);
+                _deleteTask(task.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Task "${task.title}" deleted.'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: CobaltTheme.ink,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _requestAdminAuth({
@@ -477,66 +551,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Container(color: CobaltTheme.rule, height: 1),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Active Role Status Banner
-              _buildRoleBanner(),
-              const SizedBox(height: 14),
-
-              // Hallmark Cobalt Jump Search Bar
-              _buildCobaltJumpBar(),
-              const SizedBox(height: 16),
-
-              // Executive Metric Ledger
-              _buildExecutiveLedger(),
-              const SizedBox(height: 18),
-
-              // Hallmark Cobalt Filter Tray
-              _buildFilterTray(),
-              const SizedBox(height: 16),
-
-              // Section Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedFilterIndex == 1
-                        ? 'My Deliverables (${_filteredTasks.length})'
-                        : 'Deliverables & Milestones (${_filteredTasks.length})',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: CobaltTheme.ink2,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  if (widget.tasks.isNotEmpty)
-                    Text(
-                      '${_filteredTasks.length} shown',
-                      style: const TextStyle(fontSize: 11, color: CobaltTheme.muted),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Task List or Clean Cobalt Empty State
-              _filteredTasks.isEmpty
-                  ? _buildCobaltEmptyState()
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _filteredTasks.length,
-                      itemBuilder: (context, index) {
-                        final task = _filteredTasks[index];
-                        return _buildTaskCard(task);
-                      },
-                    ),
-            ],
+      body: _currentTabIndex == 0
+          ? _buildTasksTab()
+          : StatsScreen(tasks: widget.tasks, employees: widget.employees),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: CobaltTheme.rule2, width: 1.0),
           ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentTabIndex,
+          onTap: (index) {
+            setState(() {
+              _currentTabIndex = index;
+            });
+          },
+          backgroundColor: Colors.white,
+          elevation: 0,
+          selectedItemColor: CobaltTheme.accent,
+          unselectedItemColor: CobaltTheme.muted,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment_outlined),
+              activeIcon: Icon(Icons.assignment),
+              label: 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pie_chart_outline_rounded),
+              activeIcon: Icon(Icons.pie_chart_rounded),
+              label: 'Analytics',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTasksTab() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Active Role Status Banner
+            _buildRoleBanner(),
+            const SizedBox(height: 14),
+
+            // Hallmark Cobalt Jump Search Bar
+            _buildCobaltJumpBar(),
+            const SizedBox(height: 16),
+
+            // Executive Metric Ledger
+            _buildExecutiveLedger(),
+            const SizedBox(height: 18),
+
+            // Hallmark Cobalt Filter Tray
+            _buildFilterTray(),
+            const SizedBox(height: 16),
+
+            // Section Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedFilterIndex == 1
+                      ? 'My Deliverables (${_filteredTasks.length})'
+                      : 'Deliverables & Milestones (${_filteredTasks.length})',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: CobaltTheme.ink2,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                if (widget.tasks.isNotEmpty)
+                  Text(
+                    '${_filteredTasks.length} shown',
+                    style: const TextStyle(fontSize: 11, color: CobaltTheme.muted),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Task List or Clean Cobalt Empty State (with drag & drop reorder when in default view)
+            _filteredTasks.isEmpty
+                ? _buildCobaltEmptyState()
+                : _selectedFilterIndex == 0 && _searchQuery.isEmpty
+                    ? ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredTasks.length,
+                        onReorderItem: (oldIndex, newIndex) {
+                          setState(() {
+                            final item = widget.tasks.removeAt(oldIndex);
+                            widget.tasks.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final task = _filteredTasks[index];
+                          return Container(
+                            key: ValueKey(task.id),
+                            child: _buildTaskCard(task),
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final task = _filteredTasks[index];
+                          return _buildTaskCard(task);
+                        },
+                      ),
+          ],
         ),
       ),
     );
@@ -922,15 +1055,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 17, color: CobaltTheme.muted),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _deleteTask(task.id),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 17, color: CobaltTheme.accent),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Edit Task',
+                    onPressed: () => _showEditTaskModal(context, task),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 17, color: Color(0xFFDC2626)),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Delete Task',
+                    onPressed: () => _confirmDeleteTask(task),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+
+          // TaskNexus Due Date & Deadline Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: isDone
+                  ? CobaltTheme.paper2
+                  : task.isOverdue
+                      ? const Color(0xFFFEF2F2)
+                      : CobaltTheme.paper2,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: isDone
+                    ? CobaltTheme.rule
+                    : task.isOverdue
+                        ? const Color(0xFFFCA5A5)
+                        : CobaltTheme.rule2,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isDone
+                      ? Icons.check_circle_outline
+                      : task.isOverdue
+                          ? Icons.warning_amber_rounded
+                          : Icons.event_outlined,
+                  size: 13,
+                  color: isDone
+                      ? CobaltTheme.muted
+                      : task.isOverdue
+                          ? const Color(0xFFDC2626)
+                          : CobaltTheme.ink2,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  isDone
+                      ? 'Completed (${DateFormat('MMM d').format(task.dueDate)})'
+                      : task.isOverdue
+                          ? 'Overdue: ${DateFormat('MMM d, h:mm a').format(task.dueDate)}'
+                          : 'Due: ${DateFormat('MMM d, h:mm a').format(task.dueDate)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: isDone
+                        ? CobaltTheme.muted
+                        : task.isOverdue
+                            ? const Color(0xFFDC2626)
+                            : CobaltTheme.ink2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
 
           // Assignee & Status Footer
           Row(
@@ -1030,6 +1233,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       (e) => e.id == Employee.khadija.id,
       orElse: () => widget.employees.first,
     );
+    DateTime selectedDueDate = DateTime.now().add(const Duration(days: 3));
     String? modalError;
 
     showModalBottomSheet(
@@ -1049,256 +1253,673 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 top: 24,
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.add_task_outlined, size: 20, color: CobaltTheme.accent),
-                          SizedBox(width: 8),
-                          Text(
-                            'Create New Task',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: CobaltTheme.ink,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Assign a milestone deliverable exclusively to one team member',
-                    style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
-                  ),
-                  const SizedBox(height: 18),
-
-                  if (modalError != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        border: Border.all(color: const Color(0xFFFCA5A5)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, size: 16, color: CobaltTheme.statusError),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              modalError!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: CobaltTheme.statusError,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.add_task_outlined, size: 20, color: CobaltTheme.accent),
+                            SizedBox(width: 8),
+                            Text(
+                              'Create New Task',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: CobaltTheme.ink,
+                                letterSpacing: -0.3,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Assign a milestone deliverable exclusively to one team member',
+                      style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
+                    ),
+                    const SizedBox(height: 18),
+
+                    if (modalError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          border: Border.all(color: const Color(0xFFFCA5A5)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, size: 16, color: CobaltTheme.statusError),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                modalError!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: CobaltTheme.statusError,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
+                    // Clean Generic Task Title
+                    TextField(
+                      controller: titleController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Task Title',
+                        hintText: 'Enter task title',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                       ),
                     ),
                     const SizedBox(height: 14),
-                  ],
 
-                  // Clean Generic Task Title
-                  TextField(
-                    controller: titleController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: 'Task Title',
-                      hintText: 'Enter task title',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
+                    // Clean Generic Project Name
+                    TextField(
+                      controller: projectController,
+                      decoration: InputDecoration(
+                        labelText: 'Project Name',
+                        hintText: 'Enter project name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                     ),
-                  ),
-                  const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
-                  // Clean Generic Project Name
-                  TextField(
-                    controller: projectController,
-                    decoration: InputDecoration(
-                      labelText: 'Project Name',
-                      hintText: 'Enter project name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
+                    // Single Assignee Selector
+                    const Text(
+                      'Assign To (Single Team Member)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Single Assignee Selector
-                  const Text(
-                    'Assign To (Single Team Member)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: CobaltTheme.ink2,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                      border: Border.all(color: CobaltTheme.rule2),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<Employee>(
-                        isExpanded: true,
-                        value: selectedAssignee,
-                        items: widget.employees.map((emp) {
-                          return DropdownMenuItem<Employee>(
-                            value: emp,
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: emp.isAdmin
-                                      ? CobaltTheme.accent
-                                      : CobaltTheme.paper3,
-                                  child: Text(
-                                    emp.initials,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: emp.isAdmin ? Colors.white : CobaltTheme.ink,
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        border: Border.all(color: CobaltTheme.rule2),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<Employee>(
+                          isExpanded: true,
+                          value: selectedAssignee,
+                          items: widget.employees.map((emp) {
+                            return DropdownMenuItem<Employee>(
+                              value: emp,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: emp.isAdmin
+                                        ? CobaltTheme.accent
+                                        : CobaltTheme.paper3,
+                                    child: Text(
+                                      emp.initials,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: emp.isAdmin ? Colors.white : CobaltTheme.ink,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  emp.name,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: CobaltTheme.ink,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    emp.name,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: CobaltTheme.ink,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '(${emp.role})',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: CobaltTheme.muted,
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '(${emp.role})',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: CobaltTheme.muted,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (newEmp) {
+                            if (newEmp != null) {
+                              setModalState(() => selectedAssignee = newEmp);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // TaskNexus Due Date & Time Picker
+                    const Text(
+                      'Deadline & Due Date',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: ctx,
+                          initialDate: selectedDueDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                          lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                        );
+                        if (pickedDate != null) {
+                          if (!ctx.mounted) return;
+                          final pickedTime = await showTimePicker(
+                            context: ctx,
+                            initialTime: TimeOfDay.fromDateTime(selectedDueDate),
                           );
-                        }).toList(),
-                        onChanged: (newEmp) {
-                          if (newEmp != null) {
-                            setModalState(() => selectedAssignee = newEmp);
+                          setModalState(() {
+                            selectedDueDate = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime?.hour ?? selectedDueDate.hour,
+                              pickedTime?.minute ?? selectedDueDate.minute,
+                            );
+                          });
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          border: Border.all(color: CobaltTheme.rule2),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.event_outlined, size: 18, color: CobaltTheme.accent),
+                            const SizedBox(width: 10),
+                            Text(
+                              DateFormat('EEE, MMM d, yyyy • h:mm a').format(selectedDueDate),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: CobaltTheme.ink,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Text(
+                              'Change',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: CobaltTheme.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Priority',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        TaskPriority.urgent,
+                        TaskPriority.high,
+                        TaskPriority.medium,
+                        TaskPriority.low,
+                      ].map((p) {
+                        final isSel = selectedPriority == p;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(p.name.toUpperCase()),
+                            selected: isSel,
+                            onSelected: (_) => setModalState(() => selectedPriority = p),
+                            selectedColor: CobaltTheme.accent,
+                            labelStyle: TextStyle(
+                              color: isSel ? Colors.white : CobaltTheme.ink2,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            showCheckmark: false,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 22),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CobaltKey(
+                        label: 'Assign Task',
+                        icon: Icons.assignment_turned_in,
+                        variant: CobaltKeyVariant.primary,
+                        onPressed: () {
+                          final title = titleController.text.trim();
+                          final proj = projectController.text.trim().isEmpty
+                              ? 'General'
+                              : projectController.text.trim();
+
+                          if (title.isEmpty) {
+                            setModalState(() {
+                              modalError = 'Please enter a task title.';
+                            });
+                            return;
                           }
+
+                          // Single Assignee & Exclusivity Rule:
+                          // A task once assigned cannot be assigned to another person!
+                          final duplicate = widget.tasks.any((t) =>
+                              t.title.trim().toLowerCase() == title.toLowerCase() &&
+                              t.status != TaskStatus.done);
+
+                          if (duplicate) {
+                            final existing = widget.tasks.firstWhere((t) =>
+                                t.title.trim().toLowerCase() == title.toLowerCase() &&
+                                t.status != TaskStatus.done);
+                            setModalState(() {
+                              modalError =
+                                  'Task "$title" is already assigned to ${existing.assignee.name}. Each task can only be assigned to one team member.';
+                            });
+                            return;
+                          }
+
+                          _addNewTask(
+                            title: title,
+                            projectName: proj,
+                            priority: selectedPriority,
+                            assignee: selectedAssignee,
+                            dueDate: selectedDueDate,
+                          );
+                          Navigator.pop(ctx);
                         },
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-                  const Text(
-                    'Priority',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: CobaltTheme.ink2,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      TaskPriority.urgent,
-                      TaskPriority.high,
-                      TaskPriority.medium,
-                      TaskPriority.low,
-                    ].map((p) {
-                      final isSel = selectedPriority == p;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(p.name.toUpperCase()),
-                          selected: isSel,
-                          onSelected: (_) => setModalState(() => selectedPriority = p),
-                          selectedColor: CobaltTheme.accent,
-                          labelStyle: TextStyle(
-                            color: isSel ? Colors.white : CobaltTheme.ink2,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          showCheckmark: false,
+  void _showEditTaskModal(BuildContext context, TaskItem task) {
+    final titleController = TextEditingController(text: task.title);
+    final projectController = TextEditingController(text: task.projectName);
+    TaskPriority selectedPriority = task.priority;
+    Employee selectedAssignee = widget.employees.firstWhere(
+      (e) => e.id == task.assignee.id,
+      orElse: () => widget.employees.first,
+    );
+    DateTime selectedDueDate = task.dueDate;
+    String? modalError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.edit_note_rounded, size: 22, color: CobaltTheme.accent),
+                            SizedBox(width: 8),
+                            Text(
+                              'Edit Task',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: CobaltTheme.ink,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 22),
-                  SizedBox(
-                    width: double.infinity,
-                    child: CobaltKey(
-                      label: 'Assign Task',
-                      icon: Icons.assignment_turned_in,
-                      variant: CobaltKeyVariant.primary,
-                      onPressed: () {
-                        final title = titleController.text.trim();
-                        final proj = projectController.text.trim().isEmpty
-                            ? 'General'
-                            : projectController.text.trim();
-
-                        if (title.isEmpty) {
-                          setModalState(() {
-                            modalError = 'Please enter a task title.';
-                          });
-                          return;
-                        }
-
-                        // Single Assignee & Exclusivity Rule:
-                        // A task once assigned cannot be assigned to another person!
-                        final duplicate = widget.tasks.any((t) =>
-                            t.title.trim().toLowerCase() == title.toLowerCase() &&
-                            t.status != TaskStatus.done);
-
-                        if (duplicate) {
-                          final existing = widget.tasks.firstWhere((t) =>
-                              t.title.trim().toLowerCase() == title.toLowerCase() &&
-                              t.status != TaskStatus.done);
-                          setModalState(() {
-                            modalError =
-                                'Task "$title" is already assigned to ${existing.assignee.name}. Each task can only be assigned to one team member.';
-                          });
-                          return;
-                        }
-
-                        _addNewTask(
-                          title: title,
-                          projectName: proj,
-                          priority: selectedPriority,
-                          assignee: selectedAssignee,
-                        );
-                        Navigator.pop(ctx);
-                      },
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Update task deliverables, priority, or deadline',
+                      style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
+                    ),
+                    const SizedBox(height: 18),
+
+                    if (modalError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          border: Border.all(color: const Color(0xFFFCA5A5)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, size: 16, color: CobaltTheme.statusError),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                modalError!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: CobaltTheme.statusError,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Task Title',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    TextField(
+                      controller: projectController,
+                      decoration: InputDecoration(
+                        labelText: 'Project Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Assign To (Single Team Member)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        border: Border.all(color: CobaltTheme.rule2),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<Employee>(
+                          isExpanded: true,
+                          value: selectedAssignee,
+                          items: widget.employees.map((emp) {
+                            return DropdownMenuItem<Employee>(
+                              value: emp,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: emp.isAdmin
+                                        ? CobaltTheme.accent
+                                        : CobaltTheme.paper3,
+                                    child: Text(
+                                      emp.initials,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: emp.isAdmin ? Colors.white : CobaltTheme.ink,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    emp.name,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: CobaltTheme.ink,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '(${emp.role})',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: CobaltTheme.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (newEmp) {
+                            if (newEmp != null) {
+                              setModalState(() => selectedAssignee = newEmp);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Deadline & Due Date',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: ctx,
+                          initialDate: selectedDueDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+                        );
+                        if (pickedDate != null) {
+                          if (!ctx.mounted) return;
+                          final pickedTime = await showTimePicker(
+                            context: ctx,
+                            initialTime: TimeOfDay.fromDateTime(selectedDueDate),
+                          );
+                          setModalState(() {
+                            selectedDueDate = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime?.hour ?? selectedDueDate.hour,
+                              pickedTime?.minute ?? selectedDueDate.minute,
+                            );
+                          });
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          border: Border.all(color: CobaltTheme.rule2),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.event_outlined, size: 18, color: CobaltTheme.accent),
+                            const SizedBox(width: 10),
+                            Text(
+                              DateFormat('EEE, MMM d, yyyy • h:mm a').format(selectedDueDate),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: CobaltTheme.ink,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Text(
+                              'Change',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: CobaltTheme.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Priority',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CobaltTheme.ink2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        TaskPriority.urgent,
+                        TaskPriority.high,
+                        TaskPriority.medium,
+                        TaskPriority.low,
+                      ].map((p) {
+                        final isSel = selectedPriority == p;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(p.name.toUpperCase()),
+                            selected: isSel,
+                            onSelected: (_) => setModalState(() => selectedPriority = p),
+                            selectedColor: CobaltTheme.accent,
+                            labelStyle: TextStyle(
+                              color: isSel ? Colors.white : CobaltTheme.ink2,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            showCheckmark: false,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 22),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: CobaltKey(
+                        label: 'Save Changes',
+                        icon: Icons.check,
+                        variant: CobaltKeyVariant.primary,
+                        onPressed: () {
+                          final title = titleController.text.trim();
+                          final proj = projectController.text.trim().isEmpty
+                              ? 'General'
+                              : projectController.text.trim();
+
+                          if (title.isEmpty) {
+                            setModalState(() {
+                              modalError = 'Please enter a task title.';
+                            });
+                            return;
+                          }
+
+                          _editTask(
+                            id: task.id,
+                            title: title,
+                            projectName: proj,
+                            priority: selectedPriority,
+                            assignee: selectedAssignee,
+                            dueDate: selectedDueDate,
+                          );
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Task updated successfully!'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: CobaltTheme.ink,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },

@@ -33,6 +33,34 @@ class TaskItem {
   bool get isOverdue =>
       status != TaskStatus.done && dueDate.isBefore(DateTime.now());
 
+  TaskItem copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? projectId,
+    String? projectName,
+    Employee? assignee,
+    TaskStatus? status,
+    TaskPriority? priority,
+    DateTime? dueDate,
+    int? completedSubtasks,
+    int? totalSubtasks,
+  }) {
+    return TaskItem(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      projectId: projectId ?? this.projectId,
+      projectName: projectName ?? this.projectName,
+      assignee: assignee ?? this.assignee,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      dueDate: dueDate ?? this.dueDate,
+      completedSubtasks: completedSubtasks ?? this.completedSubtasks,
+      totalSubtasks: totalSubtasks ?? this.totalSubtasks,
+    );
+  }
+
   static List<TaskItem> sampleTasks = [
     TaskItem(
       id: 'task_1',
