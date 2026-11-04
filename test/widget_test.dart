@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:task_app/main.dart';
+import 'package:task_app/models/employee.dart';
+import 'package:task_app/models/task_item.dart';
 
 void main() {
   testWidgets('Cobalt Task Manager Login and Dashboard flow test', (WidgetTester tester) async {
@@ -12,9 +14,9 @@ void main() {
     expect(find.text('🚀 Team Member'), findsOneWidget);
 
     // 2. Perform Admin Login with credentials
-    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
-    await tester.enterText(find.bySemanticsLabel('Admin Password'), 'admin123');
-    await tester.tap(find.text('Login as Tech Lead (Saleem)'));
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'admin123');
+    await tester.tap(find.text('Login as Tech Lead'));
     await tester.pumpAndSettle();
 
     // 3. Verify Dashboard Screen rendered with Cobalt features & navigation tabs
@@ -32,9 +34,9 @@ void main() {
     await tester.pumpWidget(const TaskApp());
 
     // Enter wrong credentials
-    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
-    await tester.enterText(find.bySemanticsLabel('Admin Password'), 'wrongpass');
-    await tester.tap(find.text('Login as Tech Lead (Saleem)'));
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'wrongpass');
+    await tester.tap(find.text('Login as Tech Lead'));
     await tester.pumpAndSettle();
 
     // Expect error message
@@ -65,9 +67,9 @@ void main() {
     await tester.pumpWidget(const TaskApp());
 
     // Login as Admin
-    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
-    await tester.enterText(find.bySemanticsLabel('Admin Password'), 'admin123');
-    await tester.tap(find.text('Login as Tech Lead (Saleem)'));
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'admin123');
+    await tester.tap(find.text('Login as Tech Lead'));
     await tester.pumpAndSettle();
 
     // Open + New Task modal
@@ -118,9 +120,9 @@ void main() {
     await tester.pumpWidget(const TaskApp());
 
     // Login as Admin
-    await tester.enterText(find.bySemanticsLabel('Admin Username / ID'), 'admin');
-    await tester.enterText(find.bySemanticsLabel('Admin Password'), 'admin123');
-    await tester.tap(find.text('Login as Tech Lead (Saleem)'));
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'admin123');
+    await tester.tap(find.text('Login as Tech Lead'));
     await tester.pumpAndSettle();
 
     // Switch to Analytics Tab
@@ -134,5 +136,76 @@ void main() {
     expect(find.text('Completed'), findsOneWidget);
     expect(find.text('Completion Status'), findsOneWidget);
     expect(find.text('Overdue vs Upcoming Tasks'), findsOneWidget);
+  });
+
+  testWidgets('Team Member (Khadija) does not see Edit or Delete buttons on task cards', (WidgetTester tester) async {
+    const khadija = Employee.khadija;
+    final task = TaskItem(
+      id: 'task-1',
+      title: 'Design UI Layout',
+      description: 'Create modern responsive layout',
+      projectId: 'proj-1',
+      projectName: 'Task-App Engine',
+      assignee: khadija,
+      status: TaskStatus.inProgress,
+      priority: TaskPriority.high,
+      dueDate: DateTime.now().add(const Duration(days: 2)),
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: DashboardScreen(
+        currentUser: khadija,
+        employees: const [khadija],
+        tasks: [task],
+        onLogout: () {},
+        onAddEmployee: (_) {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // Khadija sees the task
+    expect(find.text('Design UI Layout'), findsOneWidget);
+
+    // Khadija does NOT see Edit or Delete buttons (Admin-only)
+    expect(find.byTooltip('Edit Task'), findsNothing);
+    expect(find.byTooltip('Delete Task'), findsNothing);
+  });
+
+  testWidgets('Duplicate task validation is project-scoped', (WidgetTester tester) async {
+    await tester.pumpWidget(const TaskApp());
+
+    // Admin login
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'admin123');
+    await tester.tap(find.text('Login as Tech Lead'));
+    await tester.pumpAndSettle();
+
+    // Add first task in Project A
+    await tester.tap(find.text('+ New Task'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Task Title'), 'API Integration');
+    await tester.enterText(find.widgetWithText(TextField, 'Project Name'), 'Project Alpha');
+    await tester.tap(find.text('Assign Task'));
+    await tester.pumpAndSettle();
+    expect(find.text('API Integration'), findsOneWidget);
+
+    // Try to add same task in Project Alpha again -> should fail with error
+    await tester.tap(find.text('+ New Task'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Task Title'), 'API Integration');
+    await tester.enterText(find.widgetWithText(TextField, 'Project Name'), 'Project Alpha');
+    await tester.tap(find.text('Assign Task'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('already assigned within project "Project Alpha"'), findsOneWidget);
+
+    // Change Project Name to Project Beta in the modal -> should SUCCEED
+    await tester.enterText(find.widgetWithText(TextField, 'Project Name'), 'Project Beta');
+    await tester.tap(find.text('Assign Task'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    // Both tasks now exist!
+    expect(find.text('API Integration'), findsNWidgets(2));
+    expect(find.text('Project Alpha'), findsOneWidget);
+    expect(find.text('Project Beta'), findsOneWidget);
   });
 }

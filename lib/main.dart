@@ -1193,26 +1193,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 17, color: CobaltTheme.accent),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Edit Task',
-                    onPressed: () => _showEditTaskModal(context, task),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 17, color: Color(0xFFDC2626)),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Delete Task',
-                    onPressed: () => _confirmDeleteTask(task),
-                  ),
-                ],
-              ),
+              if (widget.currentUser.isAdmin)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 17, color: CobaltTheme.accent),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Edit Task',
+                      onPressed: () => _showEditTaskModal(context, task),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 17, color: Color(0xFFDC2626)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Delete Task',
+                      onPressed: () => _confirmDeleteTask(task),
+                    ),
+                  ],
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1684,19 +1685,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return;
                           }
 
-                          // Single Assignee & Exclusivity Rule:
-                          // A task once assigned cannot be assigned to another person!
+                          // Single Assignee & Exclusivity Rule per Project:
+                          // A task with the same title cannot be duplicated within the same project!
+                          // Different projects CAN have the same task title.
                           final duplicate = widget.tasks.any((t) =>
+                              t.projectName.trim().toLowerCase() == proj.toLowerCase() &&
                               t.title.trim().toLowerCase() == title.toLowerCase() &&
                               t.status != TaskStatus.done);
 
                           if (duplicate) {
                             final existing = widget.tasks.firstWhere((t) =>
+                                t.projectName.trim().toLowerCase() == proj.toLowerCase() &&
                                 t.title.trim().toLowerCase() == title.toLowerCase() &&
                                 t.status != TaskStatus.done);
                             setModalState(() {
                               modalError =
-                                  'Task "$title" is already assigned to ${existing.assignee.name}. Each task can only be assigned to one team member.';
+                                  'Task "$title" is already assigned within project "$proj" to ${existing.assignee.name}. Each task can only be assigned to one member per project.';
                             });
                             return;
                           }
@@ -2033,6 +2037,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           if (title.isEmpty) {
                             setModalState(() {
                               modalError = 'Please enter a task title.';
+                            });
+                            return;
+                          }
+
+                          // Duplicate check within same project
+                          final duplicate = widget.tasks.any((t) =>
+                              t.id != task.id &&
+                              t.projectName.trim().toLowerCase() == proj.toLowerCase() &&
+                              t.title.trim().toLowerCase() == title.toLowerCase() &&
+                              t.status != TaskStatus.done);
+
+                          if (duplicate) {
+                            final existing = widget.tasks.firstWhere((t) =>
+                                t.id != task.id &&
+                                t.projectName.trim().toLowerCase() == proj.toLowerCase() &&
+                                t.title.trim().toLowerCase() == title.toLowerCase() &&
+                                t.status != TaskStatus.done);
+                            setModalState(() {
+                              modalError =
+                                  'Task "$title" is already assigned within project "$proj" to ${existing.assignee.name}. Each task can only be assigned to one member per project.';
                             });
                             return;
                           }

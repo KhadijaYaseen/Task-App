@@ -349,8 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: _adminIdController,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            labelText: 'Admin Username / ID',
-            hintText: 'e.g. admin or saleem',
+            labelText: 'Username',
+            hintText: 'Enter username',
             prefixIcon: const Icon(Icons.person_outline, size: 18, color: CobaltTheme.muted),
             suffixIcon: _adminIdController.text.isNotEmpty
                 ? IconButton(
@@ -384,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: _obscurePassword,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            labelText: 'Admin Password',
+            labelText: 'Password',
             hintText: 'Enter password',
             prefixIcon: const Icon(Icons.lock_outline, size: 18, color: CobaltTheme.muted),
             suffixIcon: Row(
@@ -428,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // 3D Cobalt Primary Button
         CobaltKey(
-          label: 'Login as Tech Lead (Saleem)',
+          label: 'Login as Tech Lead',
           icon: Icons.login,
           variant: CobaltKeyVariant.primary,
           onPressed: _handleAdminLogin,
