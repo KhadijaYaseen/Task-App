@@ -61,6 +61,122 @@ class TaskItem {
     );
   }
 
+  factory TaskItem.fromJson(Map<String, dynamic> json, {List<Employee> employees = const []}) {
+    final statusStr = json['status'] as String? ?? 'todo';
+    final TaskStatus status;
+    switch (statusStr.toLowerCase()) {
+      case 'inprogress':
+      case 'in_progress':
+        status = TaskStatus.inProgress;
+        break;
+      case 'review':
+        status = TaskStatus.review;
+        break;
+      case 'done':
+        status = TaskStatus.done;
+        break;
+      default:
+        status = TaskStatus.todo;
+    }
+
+    final priorityStr = json['priority'] as String? ?? 'medium';
+    final TaskPriority priority;
+    switch (priorityStr.toLowerCase()) {
+      case 'urgent':
+        priority = TaskPriority.urgent;
+        break;
+      case 'high':
+        priority = TaskPriority.high;
+        break;
+      case 'low':
+        priority = TaskPriority.low;
+        break;
+      default:
+        priority = TaskPriority.medium;
+    }
+
+    final assigneeId = json['assignee_id'] as String? ?? '';
+    Employee assignee = Employee.khadija;
+    if (employees.isNotEmpty) {
+      assignee = employees.firstWhere(
+        (e) => e.id == assigneeId,
+        orElse: () => Employee.khadija,
+      );
+    } else {
+      assignee = Employee.initialEmployees.firstWhere(
+        (e) => e.id == assigneeId,
+        orElse: () => Employee.khadija,
+      );
+    }
+
+    final dueDateStr = json['due_date'] as String?;
+    final DateTime dueDate = dueDateStr != null
+        ? (DateTime.tryParse(dueDateStr) ?? DateTime.now().add(const Duration(days: 1)))
+        : DateTime.now().add(const Duration(days: 1));
+
+    return TaskItem(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      projectId: json['project_id'] as String? ?? 'proj_1',
+      projectName: json['project_name'] as String? ?? 'General',
+      assignee: assignee,
+      status: status,
+      priority: priority,
+      dueDate: dueDate,
+      completedSubtasks: (json['completed_subtasks'] as num?)?.toInt() ?? 0,
+      totalSubtasks: (json['total_subtasks'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    String statusStr = 'todo';
+    switch (status) {
+      case TaskStatus.inProgress:
+        statusStr = 'inProgress';
+        break;
+      case TaskStatus.review:
+        statusStr = 'review';
+        break;
+      case TaskStatus.done:
+        statusStr = 'done';
+        break;
+      case TaskStatus.todo:
+        statusStr = 'todo';
+        break;
+    }
+
+    String priorityStr = 'medium';
+    switch (priority) {
+      case TaskPriority.urgent:
+        priorityStr = 'urgent';
+        break;
+      case TaskPriority.high:
+        priorityStr = 'high';
+        break;
+      case TaskPriority.medium:
+        priorityStr = 'medium';
+        break;
+      case TaskPriority.low:
+        priorityStr = 'low';
+        break;
+    }
+
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'project_id': projectId,
+      'project_name': projectName,
+      'assignee_id': assignee.id,
+      'status': statusStr,
+      'priority': priorityStr,
+      'due_date': dueDate.toIso8601String(),
+      'completed_subtasks': completedSubtasks,
+      'total_subtasks': totalSubtasks,
+    };
+  }
+
   static List<TaskItem> sampleTasks = [
     TaskItem(
       id: 'task_1',

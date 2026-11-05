@@ -5,6 +5,7 @@ import 'models/task_item.dart';
 import 'screens/login_screen.dart';
 import 'screens/team_screen.dart';
 import 'screens/stats_screen.dart';
+import 'services/supabase_service.dart';
 import 'theme/cobalt_theme.dart';
 import 'widgets/cobalt_key.dart';
 
@@ -25,6 +26,33 @@ class _TaskAppState extends State<TaskApp> {
   Employee? _currentUser;
   final List<TaskItem> _tasks = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadDataFromSupabase();
+  }
+
+  Future<void> _loadDataFromSupabase() async {
+    try {
+      final emps = await SupabaseService.instance.fetchEmployees();
+      final tasks = await SupabaseService.instance.fetchTasks(employees: emps);
+      if (mounted) {
+        setState(() {
+          if (emps.isNotEmpty) {
+            _employees.clear();
+            _employees.addAll(emps);
+          }
+          if (tasks.isNotEmpty) {
+            _tasks.clear();
+            _tasks.addAll(tasks);
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading from Supabase: $e');
+    }
+  }
+
   void _handleLogin(Employee user) {
     setState(() {
       _currentUser = user;
@@ -41,6 +69,7 @@ class _TaskAppState extends State<TaskApp> {
     setState(() {
       _employees.add(newEmp);
     });
+    SupabaseService.instance.insertEmployee(newEmp);
   }
 
   @override
@@ -136,22 +165,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Employee assignee,
     required DateTime dueDate,
   }) {
+    final newTask = TaskItem(
+      id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      description: 'Deliverable for $projectName',
+      projectId: 'proj_dynamic',
+      projectName: projectName.isEmpty ? 'Company Task-App' : projectName,
+      assignee: assignee,
+      status: TaskStatus.inProgress,
+      priority: priority,
+      dueDate: dueDate,
+    );
     setState(() {
-      widget.tasks.insert(
-        0,
-        TaskItem(
-          id: 'task_${DateTime.now().millisecondsSinceEpoch}',
-          title: title,
-          description: 'Deliverable for $projectName',
-          projectId: 'proj_dynamic',
-          projectName: projectName.isEmpty ? 'Company Task-App' : projectName,
-          assignee: assignee,
-          status: TaskStatus.inProgress,
-          priority: priority,
-          dueDate: dueDate,
-        ),
-      );
+      widget.tasks.insert(0, newTask);
     });
+    SupabaseService.instance.insertTask(newTask);
   }
 
   void _editTask({
@@ -165,13 +193,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       final index = widget.tasks.indexWhere((t) => t.id == id);
       if (index != -1) {
-        widget.tasks[index] = widget.tasks[index].copyWith(
+        final updated = widget.tasks[index].copyWith(
           title: title,
           projectName: projectName.isEmpty ? widget.tasks[index].projectName : projectName,
           priority: priority,
           assignee: assignee,
           dueDate: dueDate,
         );
+        widget.tasks[index] = updated;
+        SupabaseService.instance.updateTask(updated);
       }
     });
   }
@@ -183,9 +213,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final newStatus = task.status == TaskStatus.done
             ? TaskStatus.inProgress
             : TaskStatus.done;
-        widget.tasks[index] = task.copyWith(
+        final updated = task.copyWith(
           status: newStatus,
         );
+        widget.tasks[index] = updated;
+        SupabaseService.instance.updateTask(updated);
       }
     });
   }
@@ -194,6 +226,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       widget.tasks.removeWhere((t) => t.id == id);
     });
+    SupabaseService.instance.deleteTask(id);
+  }
+
+  Future<void> _refreshFromCloud() async {
+    try {
+      final freshTasks = await SupabaseService.instance.fetchTasks(employees: widget.employees);
+      if (mounted && freshTasks.isNotEmpty) {
+        setState(() {
+          widget.tasks.clear();
+          widget.tasks.addAll(freshTasks);
+        });
+      }
+    } catch (_) {}
   }
 
   void _confirmDeleteTask(TaskItem task) {
@@ -1117,6 +1162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _showAddTaskModal(context);
               } else {
                 setState(() => _selectedFilterIndex = 0);
+                _refreshFromCloud();
               }
             },
           ),

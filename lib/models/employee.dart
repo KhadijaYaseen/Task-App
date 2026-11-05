@@ -52,4 +52,29 @@ class Employee {
   );
 
   static List<Employee> get initialEmployees => [saleem, khadija, hamza, zain];
+
+  factory Employee.fromJson(Map<String, dynamic> json) {
+    return Employee(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? 'Team Member',
+      role: json['role'] as String? ?? 'Engineer',
+      initials: json['initials'] as String? ??
+          (json['name'] != null && (json['name'] as String).isNotEmpty
+              ? (json['name'] as String).trim().substring(0, 1).toUpperCase()
+              : 'TM'),
+      email: json['email'] as String?,
+      isAdmin: json['is_admin'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'role': role,
+      'initials': initials,
+      'email': email,
+      'is_admin': isAdmin,
+    };
+  }
 }

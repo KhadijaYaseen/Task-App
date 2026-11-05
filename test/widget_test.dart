@@ -3,8 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:task_app/main.dart';
 import 'package:task_app/models/employee.dart';
 import 'package:task_app/models/task_item.dart';
+import 'package:task_app/services/supabase_service.dart';
 
 void main() {
+  setUp(() {
+    SupabaseService.isTestMode = true;
+  });
   testWidgets('Cobalt Task Manager Login and Dashboard flow test', (WidgetTester tester) async {
     await tester.pumpWidget(const TaskApp());
 
