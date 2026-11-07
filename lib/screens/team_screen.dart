@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/employee.dart';
 import '../services/supabase_service.dart';
 import '../theme/cobalt_theme.dart';
@@ -232,6 +233,8 @@ class _TeamScreenState extends State<TeamScreen> {
     final nameController = TextEditingController();
     final roleController = TextEditingController();
     final emailController = TextEditingController();
+    final passwordController = TextEditingController(text: 'Welcome@2026');
+    bool obscurePassword = false;
     bool makeAdmin = false;
 
     showModalBottomSheet(
@@ -251,138 +254,338 @@ class _TeamScreenState extends State<TeamScreen> {
                 top: 20,
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.person_add_alt_1, size: 20, color: CobaltTheme.accent),
-                          SizedBox(width: 8),
-                          Text(
-                            'Add New Team Member',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: CobaltTheme.ink,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.person_add_alt_1, size: 20, color: CobaltTheme.accent),
+                            SizedBox(width: 8),
+                            Text(
+                              'Add New Team Member',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: CobaltTheme.ink,
+                              ),
                             ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        hintText: 'e.g. Farhan Akhtar',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: roleController,
+                      decoration: InputDecoration(
+                        labelText: 'Role',
+                        hintText: 'Role',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Company Email',
+                        hintText: 'e.g. farhan@khawajalabs.com',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Initial Password (Set by Admin)',
+                        hintText: 'e.g. Welcome@2026',
+                        prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                size: 18,
+                                color: CobaltTheme.muted,
+                              ),
+                              tooltip: obscurePassword ? 'Show password' : 'Hide password',
+                              onPressed: () => setModalState(() => obscurePassword = !obscurePassword),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.auto_fix_high, size: 18, color: CobaltTheme.accent),
+                              tooltip: 'Generate secure password',
+                              onPressed: () {
+                                final rand = (1000 + DateTime.now().millisecond % 9000);
+                                passwordController.text = 'Khawaja@$rand';
+                                setModalState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                          borderSide: const BorderSide(color: CobaltTheme.rule2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: makeAdmin,
+                          activeColor: CobaltTheme.accent,
+                          onChanged: (val) {
+                            setModalState(() => makeAdmin = val ?? false);
+                          },
+                        ),
+                        const Text(
+                          'Grant Tech Lead / Admin Privileges',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: CobaltTheme.ink2,
                           ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: nameController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      hintText: 'e.g. Farhan Akhtar',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: roleController,
-                    decoration: InputDecoration(
-                      labelText: 'Role',
-                      hintText: 'Role',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Company Email (Optional)',
-                      hintText: 'e.g. farhan@khawajalabs.com',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                        borderSide: const BorderSide(color: CobaltTheme.rule2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: makeAdmin,
-                        activeColor: CobaltTheme.accent,
-                        onChanged: (val) {
-                          setModalState(() => makeAdmin = val ?? false);
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CobaltKey(
+                        label: 'Save & Dispatch Welcome Email',
+                        icon: Icons.mark_email_read_outlined,
+                        variant: CobaltKeyVariant.primary,
+                        onPressed: () {
+                          final name = nameController.text.trim();
+                          final role = roleController.text.trim();
+                          final email = emailController.text.trim();
+                          final rawPass = passwordController.text.trim().isNotEmpty
+                              ? passwordController.text.trim()
+                              : 'Welcome@2026';
+
+                          if (name.isNotEmpty && role.isNotEmpty) {
+                            // Generate initials
+                            final parts = name.split(' ');
+                            String initials = parts.isNotEmpty
+                                ? parts.map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').take(2).join()
+                                : 'EM';
+                            if (initials.isEmpty) initials = 'EM';
+
+                            final newEmp = Employee(
+                              id: 'emp_${DateTime.now().millisecondsSinceEpoch}',
+                              name: name,
+                              role: role,
+                              initials: initials,
+                              email: email.isNotEmpty ? email : null,
+                              password: rawPass,
+                              isAdmin: makeAdmin,
+                            );
+
+                            setState(() {
+                              _teamList.add(newEmp);
+                            });
+                            widget.onAddEmployee(newEmp);
+                            Navigator.pop(ctx);
+                            _showWelcomeEmailModal(
+                              context,
+                              employee: newEmp,
+                              initialPassword: rawPass,
+                            );
+                          }
                         },
                       ),
-                      const Text(
-                        'Grant Tech Lead / Admin Privileges',
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showWelcomeEmailModal(
+    BuildContext context, {
+    required Employee employee,
+    required String initialPassword,
+  }) {
+    final emailText = '''
+Dear ${employee.name},
+
+Welcome to the Khawaja Labs team! You have been registered on the Company Task Manager.
+
+Your Login Credentials:
+- Role: ${employee.role}
+- Login Email: ${employee.email ?? "Assigned in internal roster"}
+- Temporary Password: $initialPassword
+
+Please log in to the Task App using these credentials and keep them confidential.
+
+Best regards,
+Saleem (Software Architect & Tech Lead)
+Khawaja Labs Internal
+'''.trim();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.mark_email_read_outlined, size: 22, color: CobaltTheme.statusSuccess),
+                      SizedBox(width: 8),
+                      Text(
+                        'Welcome Email Dispatched',
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: CobaltTheme.ink2,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: CobaltTheme.ink,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'New team member credentials ready to share.',
+                style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
+              ),
+              const SizedBox(height: 16),
+
+              // Email Envelope Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CobaltTheme.paper2,
+                  borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                  border: Border.all(color: CobaltTheme.rule),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('To: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: CobaltTheme.ink2)),
+                        Expanded(
+                          child: Text(
+                            employee.email ?? 'No email provided',
+                            style: const TextStyle(fontSize: 12, color: CobaltTheme.accent, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Row(
+                      children: [
+                        Text('From: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: CobaltTheme.ink2)),
+                        Text('saleemali001232@gmail.com (Tech Lead)', style: TextStyle(fontSize: 12, color: CobaltTheme.muted)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Text('Subject: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: CobaltTheme.ink2)),
+                        Expanded(
+                          child: Text(
+                            'Welcome to Khawaja Labs — ${employee.role}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: CobaltTheme.ink),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 20, color: CobaltTheme.rule2),
+                    Text(
+                      'Hi ${employee.name},\n\nWelcome to Khawaja Labs! You have been onboarded to the team roster.\n\n'
+                      '• Role: ${employee.role}\n'
+                      '• Email: ${employee.email ?? "Registered"}\n'
+                      '• Initial Password: $initialPassword\n\n'
+                      'You can now sign in to view and track your assigned deliverables.',
+                      style: const TextStyle(fontSize: 12, color: CobaltTheme.ink2, height: 1.45),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              Row(
+                children: [
+                  Expanded(
                     child: CobaltKey(
-                      label: 'Save & Register Employee',
+                      label: 'Copy Credentials',
+                      icon: Icons.copy,
+                      variant: CobaltKeyVariant.outline,
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: emailText));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Onboarding email & password copied to clipboard!'),
+                            backgroundColor: CobaltTheme.ink,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CobaltKey(
+                      label: 'Done',
                       icon: Icons.check,
                       variant: CobaltKeyVariant.primary,
-                      onPressed: () {
-                        final name = nameController.text.trim();
-                        final role = roleController.text.trim();
-                        if (name.isNotEmpty && role.isNotEmpty) {
-                          // Generate initials
-                          final parts = name.split(' ');
-                          String initials = parts.isNotEmpty
-                              ? parts.map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').take(2).join()
-                              : 'EM';
-                          if (initials.isEmpty) initials = 'EM';
-
-                          final newEmp = Employee(
-                            id: 'emp_${DateTime.now().millisecondsSinceEpoch}',
-                            name: name,
-                            role: role,
-                            initials: initials,
-                            email: emailController.text.trim().isNotEmpty
-                                ? emailController.text.trim()
-                                : null,
-                            isAdmin: makeAdmin,
-                          );
-
-                          setState(() {
-                            _teamList.add(newEmp);
-                          });
-                          widget.onAddEmployee(newEmp);
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Employee $name successfully added to roster!'),
-                              backgroundColor: CobaltTheme.statusSuccess,
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: () => Navigator.pop(ctx),
                     ),
                   ),
                 ],
               ),
-            );
-          },
+            ],
+          ),
         );
       },
     );

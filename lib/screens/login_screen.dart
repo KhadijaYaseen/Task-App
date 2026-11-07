@@ -243,175 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showSignUpDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
-    final roleController = TextEditingController();
-    final passController = TextEditingController();
-    String? modalError;
-    bool isRegistering = false;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.person_add_outlined, size: 20, color: CobaltTheme.accent),
-                            SizedBox(width: 8),
-                            Text(
-                              'Register New Member',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: CobaltTheme.ink,
-                              ),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 20, color: CobaltTheme.muted),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Create a real team member profile connected to Supabase.',
-                      style: TextStyle(fontSize: 12, color: CobaltTheme.muted),
-                    ),
-                    const SizedBox(height: 16),
-                    if (modalError != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                          border: Border.all(color: const Color(0xFFFCA5A5)),
-                        ),
-                        child: Text(
-                          modalError!,
-                          style: const TextStyle(fontSize: 12, color: CobaltTheme.statusError, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        hintText: 'e.g. Ayesha Noor',
-                        prefixIcon: const Icon(Icons.badge_outlined, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'Email Address',
-                        hintText: 'e.g. ayesha@khawajalabs.com',
-                        prefixIcon: const Icon(Icons.email_outlined, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: roleController,
-                      decoration: InputDecoration(
-                        labelText: 'Role',
-                        hintText: 'Role',
-                        prefixIcon: const Icon(Icons.work_outline, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: passController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Create a password',
-                        prefixIcon: const Icon(Icons.lock_outline, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    CobaltKey(
-                      label: isRegistering ? 'Registering...' : 'Create Account',
-                      icon: Icons.person_add,
-                      variant: CobaltKeyVariant.primary,
-                      onPressed: () async {
-                        if (isRegistering) return;
-                        final name = nameController.text.trim();
-                        final email = emailController.text.trim();
-                        final role = roleController.text.trim();
-                        final pass = passController.text;
 
-                        if (name.isEmpty) {
-                          setModalState(() => modalError = 'Please enter full name.');
-                          return;
-                        }
-                        if (email.isEmpty || !email.contains('@')) {
-                          setModalState(() => modalError = 'Please enter a valid email.');
-                          return;
-                        }
-                        if (pass.length < 6) {
-                          setModalState(() => modalError = 'Password must be at least 6 characters.');
-                          return;
-                        }
-
-                        setModalState(() {
-                          isRegistering = true;
-                          modalError = null;
-                        });
-
-                        final newEmp = await SupabaseService.instance.signUp(
-                          name: name,
-                          email: email,
-                          role: role,
-                          password: pass,
-                        );
-
-                        if (!ctx.mounted) return;
-                        Navigator.pop(ctx);
-                        if (newEmp != null) {
-                          widget.onLoginSuccess(newEmp);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -903,37 +736,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
         const SizedBox(height: 12),
 
-        // Register New Member Button & Forgot Password row
-        Row(
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.person_add, size: 14, color: CobaltTheme.accent),
-                  label: const Text('New Member?', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => _showSignUpDialog(context),
-                ),
+        // Forgot Password link
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => _showResetPasswordDialog(
+              context,
+              initialEmail: _selectedMember?.email ?? 'khadijayaseen36@gmail.com',
+            ),
+            child: const Text(
+              'Forgot Password?',
+              style: TextStyle(
+                fontSize: 12,
+                color: CobaltTheme.accent,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            TextButton(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () => _showResetPasswordDialog(
-                context,
-                initialEmail: _selectedMember?.email ?? 'khadijayaseen36@gmail.com',
-              ),
-              child: const Text('Forgot Password?', style: TextStyle(fontSize: 12, color: CobaltTheme.muted)),
-            ),
-          ],
+          ),
         ),
 
         const SizedBox(height: 10),
