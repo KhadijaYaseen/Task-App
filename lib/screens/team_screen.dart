@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/employee.dart';
+import '../services/supabase_service.dart';
 import '../theme/cobalt_theme.dart';
 import '../widgets/cobalt_key.dart';
 
@@ -7,12 +8,14 @@ class TeamScreen extends StatefulWidget {
   final List<Employee> employees;
   final Employee currentUser;
   final Function(Employee newEmployee) onAddEmployee;
+  final Function(Employee employee)? onDeleteEmployee;
 
   const TeamScreen({
     super.key,
     required this.employees,
     required this.currentUser,
     required this.onAddEmployee,
+    this.onDeleteEmployee,
   });
 
   @override
@@ -20,6 +23,82 @@ class TeamScreen extends StatefulWidget {
 }
 
 class _TeamScreenState extends State<TeamScreen> {
+  late List<Employee> _teamList;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamList = List.from(widget.employees);
+  }
+
+  @override
+  void didUpdateWidget(covariant TeamScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.employees != widget.employees) {
+      _teamList = List.from(widget.employees);
+    }
+  }
+
+  void _confirmDeleteMember(BuildContext context, Employee member) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CobaltTheme.radiusCard),
+          side: const BorderSide(color: CobaltTheme.rule2),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: CobaltTheme.statusError, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Remove Member',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: CobaltTheme.ink,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to remove ${member.name} (${member.role}) from the team roster? This will permanently delete their account.',
+          style: const TextStyle(fontSize: 13, color: CobaltTheme.muted, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: CobaltTheme.muted)),
+          ),
+          CobaltKey(
+            label: 'Delete',
+            isSmall: true,
+            variant: CobaltKeyVariant.outline,
+            onPressed: () async {
+              Navigator.pop(ctx);
+              setState(() {
+                _teamList.removeWhere((e) => e.id == member.id);
+              });
+              if (widget.onDeleteEmployee != null) {
+                widget.onDeleteEmployee!(member);
+              }
+              await SupabaseService.instance.deleteEmployee(member.id);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${member.name} was removed from the team roster.'),
+                    backgroundColor: CobaltTheme.ink,
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _promptAdminAndAddMember(BuildContext context) {
     if (widget.currentUser.isAdmin) {
       _showAddMemberModal(context);
@@ -216,8 +295,8 @@ class _TeamScreenState extends State<TeamScreen> {
                   TextField(
                     controller: roleController,
                     decoration: InputDecoration(
-                      labelText: 'Designation / Role',
-                      hintText: 'e.g. Flutter Developer or QA Engineer',
+                      labelText: 'Role',
+                      hintText: 'Role',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                         borderSide: const BorderSide(color: CobaltTheme.rule2),
@@ -285,6 +364,9 @@ class _TeamScreenState extends State<TeamScreen> {
                             isAdmin: makeAdmin,
                           );
 
+                          setState(() {
+                            _teamList.add(newEmp);
+                          });
                           widget.onAddEmployee(newEmp);
                           Navigator.pop(ctx);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -381,7 +463,7 @@ class _TeamScreenState extends State<TeamScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Active Members (${widget.employees.length})',
+                    'Active Members (${_teamList.length})',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -413,9 +495,9 @@ class _TeamScreenState extends State<TeamScreen> {
 
               Expanded(
                 child: ListView.builder(
-                  itemCount: widget.employees.length,
+                  itemCount: _teamList.length,
                   itemBuilder: (context, index) {
-                    final member = widget.employees[index];
+                    final member = _teamList[index];
                     final isCurrent = member.id == widget.currentUser.id;
 
                     return Container(
@@ -515,6 +597,16 @@ class _TeamScreenState extends State<TeamScreen> {
                               ),
                             ),
                           ),
+                          if (widget.currentUser.isAdmin && !member.isAdmin) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20, color: CobaltTheme.statusError),
+                              tooltip: 'Delete member',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _confirmDeleteMember(context, member),
+                            ),
+                          ],
                         ],
                       ),
                     );

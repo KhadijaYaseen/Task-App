@@ -342,8 +342,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: roleController,
                       decoration: InputDecoration(
-                        labelText: 'Role / Designation',
-                        hintText: 'e.g. Flutter Developer',
+                        labelText: 'Role',
+                        hintText: 'Role',
                         prefixIcon: const Icon(Icons.work_outline, size: 18),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),

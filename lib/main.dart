@@ -72,6 +72,13 @@ class _TaskAppState extends State<TaskApp> {
     SupabaseService.instance.insertEmployee(newEmp);
   }
 
+  void _handleDeleteEmployee(Employee emp) {
+    setState(() {
+      _employees.removeWhere((e) => e.id == emp.id);
+    });
+    SupabaseService.instance.deleteEmployee(emp.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -89,6 +96,7 @@ class _TaskAppState extends State<TaskApp> {
               tasks: _tasks,
               onLogout: _handleLogout,
               onAddEmployee: _handleAddEmployee,
+              onDeleteEmployee: _handleDeleteEmployee,
             ),
     );
   }
@@ -100,6 +108,7 @@ class DashboardScreen extends StatefulWidget {
   final List<TaskItem> tasks;
   final VoidCallback onLogout;
   final Function(Employee newEmp) onAddEmployee;
+  final Function(Employee emp)? onDeleteEmployee;
 
   const DashboardScreen({
     super.key,
@@ -108,6 +117,7 @@ class DashboardScreen extends StatefulWidget {
     required this.tasks,
     required this.onLogout,
     required this.onAddEmployee,
+    this.onDeleteEmployee,
   });
 
   @override
@@ -454,6 +464,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           employees: widget.employees,
           currentUser: widget.currentUser,
           onAddEmployee: widget.onAddEmployee,
+          onDeleteEmployee: widget.onDeleteEmployee,
         ),
       ),
     );
