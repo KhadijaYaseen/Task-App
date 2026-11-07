@@ -4,6 +4,7 @@ class Employee {
   final String role;
   final String initials;
   final String? email;
+  final String? password;
   final bool isAdmin;
 
   const Employee({
@@ -12,15 +13,17 @@ class Employee {
     required this.role,
     required this.initials,
     this.email,
+    this.password,
     this.isAdmin = false,
   });
 
   static const Employee saleem = Employee(
     id: 'emp_1',
     name: 'Saleem',
-    role: 'Tech Lead / Manager',
+    role: 'Software Architect & Tech Lead',
     initials: 'SL',
-    email: 'saleem@khawajalabs.com',
+    email: 'saleemali001232@gmail.com',
+    password: 'password123',
     isAdmin: true,
   );
 
@@ -29,16 +32,19 @@ class Employee {
     name: 'Khadija Yaseen',
     role: 'Mobile Engineer (Intern)',
     initials: 'KY',
-    email: 'khadija@khawajalabs.com',
+    email: 'khadijayaseen36@gmail.com',
+    password: 'password123',
     isAdmin: false,
   );
 
+  // Backward compatible static references
   static const Employee hamza = Employee(
     id: 'emp_3',
     name: 'Hamza Khan',
     role: 'UI/UX Designer',
     initials: 'HK',
     email: 'hamza@khawajalabs.com',
+    password: 'password123',
     isAdmin: false,
   );
 
@@ -48,10 +54,11 @@ class Employee {
     role: 'Backend Developer',
     initials: 'ZA',
     email: 'zain@khawajalabs.com',
+    password: 'password123',
     isAdmin: false,
   );
 
-  static List<Employee> get initialEmployees => [saleem, khadija, hamza, zain];
+  static List<Employee> get initialEmployees => [saleem, khadija];
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
@@ -63,6 +70,7 @@ class Employee {
               ? (json['name'] as String).trim().substring(0, 1).toUpperCase()
               : 'TM'),
       email: json['email'] as String?,
+      password: json['password'] as String?,
       isAdmin: json['is_admin'] == true,
     );
   }
@@ -74,6 +82,7 @@ class Employee {
       'role': role,
       'initials': initials,
       'email': email,
+      'password': password ?? 'password123',
       'is_admin': isAdmin,
     };
   }

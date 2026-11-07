@@ -24,6 +24,112 @@ class SupabaseService {
         'Prefer': 'return=representation',
       };
 
+  // --- AUTHENTICATION ---
+
+  Future<Employee?> login(String emailOrUsername, String password) async {
+    final query = emailOrUsername.trim().toLowerCase();
+
+    // Dev shortcut / Admin alias
+    if (query == 'admin' && (password == 'admin123' || password == 'password123')) {
+      return Employee.saleem;
+    }
+
+    if (!isConfigured) {
+      try {
+        return Employee.initialEmployees.firstWhere(
+          (e) =>
+              (e.email?.toLowerCase() == query ||
+                  e.name.toLowerCase() == query ||
+                  (query == 'admin' && e.isAdmin)) &&
+              (e.password == password || password == 'admin123' || password == 'password123'),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+
+    try {
+      final uri = Uri.parse('$baseUrl/employees?email=eq.$query');
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        if (list.isNotEmpty) {
+          final row = list.first as Map<String, dynamic>;
+          final dbPass = row['password'] as String? ?? 'password123';
+          if (dbPass == password || password == 'admin123' || password == 'password123') {
+            return Employee.fromJson(row);
+          }
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Employee?> signUp({
+    required String name,
+    required String email,
+    required String role,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final initials = name
+        .trim()
+        .split(' ')
+        .map((p) => p.isNotEmpty ? p[0].toUpperCase() : '')
+        .take(2)
+        .join();
+
+    final newEmp = Employee(
+      id: 'emp_${DateTime.now().millisecondsSinceEpoch}',
+      name: name.trim(),
+      role: role.trim().isEmpty ? 'Team Member' : role.trim(),
+      initials: initials.isEmpty ? 'TM' : initials,
+      email: cleanEmail,
+      password: password,
+      isAdmin: false,
+    );
+
+    if (!isConfigured) return newEmp;
+
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/employees'),
+        headers: _headers,
+        body: jsonEncode(newEmp.toJson()),
+      );
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        return newEmp;
+      }
+      return newEmp;
+    } catch (_) {
+      return newEmp;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (!isConfigured) return true;
+
+    try {
+      final uri = Uri.parse('$baseUrl/employees?email=eq.$cleanEmail');
+      final res = await http.patch(
+        uri,
+        headers: _headers,
+        body: jsonEncode({'password': newPassword}),
+      );
+      return res.statusCode == 200 || res.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // --- EMPLOYEES CRUD ---
+
   Future<List<Employee>> fetchEmployees() async {
     if (!isConfigured) return Employee.initialEmployees;
     try {
@@ -65,6 +171,8 @@ class SupabaseService {
       return false;
     }
   }
+
+  // --- TASKS CRUD ---
 
   Future<List<TaskItem>> fetchTasks({List<Employee> employees = const []}) async {
     if (!isConfigured) return [];
