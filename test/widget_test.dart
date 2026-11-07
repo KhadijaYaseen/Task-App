@@ -142,9 +142,11 @@ void main() {
     expect(find.text('Overdue vs Upcoming Tasks'), findsOneWidget);
   });
 
-  testWidgets('Team Member (Khadija) does not see Edit or Delete buttons on task cards', (WidgetTester tester) async {
+  testWidgets('Team Member (Khadija) does not see Edit or Delete buttons on task cards and can only toggle own tasks', (WidgetTester tester) async {
     const khadija = Employee.khadija;
-    final task = TaskItem(
+    const hamza = Employee.hamza;
+
+    final myTask = TaskItem(
       id: 'task-1',
       title: 'Design UI Layout',
       description: 'Create modern responsive layout',
@@ -156,23 +158,53 @@ void main() {
       dueDate: DateTime.now().add(const Duration(days: 2)),
     );
 
+    final otherTask = TaskItem(
+      id: 'task-2',
+      title: 'Export Vector Icons',
+      description: 'Export brand SVG assets',
+      projectId: 'proj-1',
+      projectName: 'Task-App Engine',
+      assignee: hamza,
+      status: TaskStatus.inProgress,
+      priority: TaskPriority.medium,
+      dueDate: DateTime.now().add(const Duration(days: 1)),
+    );
+
     await tester.pumpWidget(MaterialApp(
-      home: DashboardScreen(
-        currentUser: khadija,
-        employees: const [khadija],
-        tasks: [task],
-        onLogout: () {},
-        onAddEmployee: (_) {},
+      home: Scaffold(
+        body: DashboardScreen(
+          currentUser: khadija,
+          employees: const [khadija, hamza],
+          tasks: [myTask, otherTask],
+          onLogout: () {},
+          onAddEmployee: (_) {},
+        ),
       ),
     ));
     await tester.pumpAndSettle();
 
-    // Khadija sees the task
+    // Khadija sees both tasks
     expect(find.text('Design UI Layout'), findsOneWidget);
+    expect(find.text('Export Vector Icons'), findsOneWidget);
 
     // Khadija does NOT see Edit or Delete buttons (Admin-only)
     expect(find.byTooltip('Edit Task'), findsNothing);
     expect(find.byTooltip('Delete Task'), findsNothing);
+
+    // Khadija sees lock icon on Hamza's task
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+
+    // Tap Hamza's task checkbox -> blocked with SnackBar
+    await tester.ensureVisible(find.byIcon(Icons.lock_outline));
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('Only Hamza Khan or Tech Lead can update this deliverable.'), findsOneWidget);
+
+    // Tap Khadija's own task checkbox -> successfully toggles to Done
+    await tester.ensureVisible(find.byTooltip('Mark as Done'));
+    await tester.tap(find.byTooltip('Mark as Done'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Mark as In Progress'), findsOneWidget);
   });
 
   testWidgets('Duplicate task validation is project-scoped', (WidgetTester tester) async {

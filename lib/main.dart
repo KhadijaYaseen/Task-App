@@ -207,6 +207,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _toggleTaskStatus(TaskItem task) {
+    final isAssignedToMe = task.assignee.id == widget.currentUser.id;
+    if (!widget.currentUser.isAdmin && !isAssignedToMe) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Only ${task.assignee.name} or Tech Lead can update this deliverable.',
+            style: const TextStyle(fontSize: 12),
+          ),
+          backgroundColor: CobaltTheme.ink,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       final index = widget.tasks.indexWhere((t) => t.id == task.id);
       if (index != -1) {
@@ -1174,6 +1191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildTaskCard(TaskItem task) {
     final isDone = task.status == TaskStatus.done;
     final isAssignedToMe = task.assignee.id == widget.currentUser.id;
+    final canToggle = widget.currentUser.isAdmin || isAssignedToMe;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1234,23 +1252,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () => _toggleTaskStatus(task),
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  margin: const EdgeInsets.only(top: 2, right: 10),
-                  decoration: BoxDecoration(
-                    color: isDone ? CobaltTheme.statusSuccess : Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: isDone ? CobaltTheme.statusSuccess : CobaltTheme.rule2,
-                      width: 1.5,
+              Tooltip(
+                message: canToggle
+                    ? (isDone ? 'Mark as In Progress' : 'Mark as Done')
+                    : 'Assigned to ${task.assignee.name} (View only)',
+                child: GestureDetector(
+                  onTap: () => _toggleTaskStatus(task),
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    margin: const EdgeInsets.only(top: 2, right: 10),
+                    decoration: BoxDecoration(
+                      color: isDone
+                          ? (canToggle ? CobaltTheme.statusSuccess : CobaltTheme.statusSuccess.withValues(alpha: 0.6))
+                          : (canToggle ? Colors.white : const Color(0xFFF8FAFC)),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isDone
+                            ? (canToggle ? CobaltTheme.statusSuccess : CobaltTheme.statusSuccess.withValues(alpha: 0.6))
+                            : (canToggle ? CobaltTheme.rule2 : const Color(0xFFCBD5E1)),
+                        width: 1.5,
+                      ),
                     ),
+                    child: isDone
+                        ? const Icon(Icons.check, size: 14, color: Colors.white)
+                        : (!canToggle
+                            ? const Icon(Icons.lock_outline, size: 11, color: Color(0xFF94A3B8))
+                            : null),
                   ),
-                  child: isDone
-                      ? const Icon(Icons.check, size: 14, color: Colors.white)
-                      : null,
                 ),
               ),
               Expanded(
