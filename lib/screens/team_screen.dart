@@ -310,9 +310,11 @@ class _TeamScreenState extends State<TeamScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Company Email',
-                        hintText: 'e.g. farhan@khawajalabs.com',
+                        labelText: 'Member Email',
+                        hintText: 'e.g. member@gmail.com',
+                        prefixIcon: const Icon(Icons.email_outlined, size: 18, color: CobaltTheme.muted),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                           borderSide: const BorderSide(color: CobaltTheme.rule2),
