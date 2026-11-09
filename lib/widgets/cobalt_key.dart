@@ -3,7 +3,7 @@ import '../theme/cobalt_theme.dart';
 
 enum CobaltKeyVariant { primary, neutral, outline }
 
-/// Tactile 3D Keycap button inspired directly by Hallmark Cobalt (.key, .key--primary)
+/// Elevated tactile button widget.
 class CobaltKey extends StatefulWidget {
   final String label;
   final IconData? icon;

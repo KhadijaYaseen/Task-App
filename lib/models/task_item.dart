@@ -181,7 +181,7 @@ class TaskItem {
     TaskItem(
       id: 'task_1',
       title: 'Initialize Task Manager architecture & Cobalt theme',
-      description: 'Set up Flutter project structure, Hallmark design tokens, and routing.',
+      description: 'Set up Flutter project structure, design tokens, and routing.',
       projectId: 'proj_1',
       projectName: 'Company Task Manager App',
       assignee: Employee.khadija,

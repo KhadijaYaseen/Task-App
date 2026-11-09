@@ -822,19 +822,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Active Role Status Banner
+            // Role status banner
             _buildRoleBanner(),
             const SizedBox(height: 14),
 
-            // Hallmark Cobalt Jump Search Bar
+            // Search bar
             _buildCobaltJumpBar(),
             const SizedBox(height: 16),
 
-            // Executive Metric Ledger
+            // Metrics summary
             _buildExecutiveLedger(),
             const SizedBox(height: 18),
 
-            // Hallmark Cobalt Filter Tray
+            // Status filters
             _buildFilterTray(),
             const SizedBox(height: 16),
 
@@ -862,7 +862,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Task List or Clean Cobalt Empty State (with drag & drop reorder when in default view)
+            // Task list or empty state
             _filteredTasks.isEmpty
                 ? _buildCobaltEmptyState()
                 : _selectedFilterIndex == 0 && _searchQuery.isEmpty

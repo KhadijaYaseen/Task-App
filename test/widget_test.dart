@@ -142,9 +142,9 @@ void main() {
     expect(find.text('Overdue vs Upcoming Tasks'), findsOneWidget);
   });
 
-  testWidgets('Team Member (Khadija) does not see Edit or Delete buttons on task cards and can only toggle own tasks', (WidgetTester tester) async {
-    const khadija = Employee.khadija;
-    const hamza = Employee.hamza;
+  testWidgets('Non-admin team member cannot edit or delete tasks and can only toggle own tasks', (WidgetTester tester) async {
+    const member = Employee.khadija;
+    const peer = Employee.hamza;
 
     final myTask = TaskItem(
       id: 'task-1',
@@ -152,7 +152,7 @@ void main() {
       description: 'Create modern responsive layout',
       projectId: 'proj-1',
       projectName: 'Task-App Engine',
-      assignee: khadija,
+      assignee: member,
       status: TaskStatus.inProgress,
       priority: TaskPriority.high,
       dueDate: DateTime.now().add(const Duration(days: 2)),
@@ -164,7 +164,7 @@ void main() {
       description: 'Export brand SVG assets',
       projectId: 'proj-1',
       projectName: 'Task-App Engine',
-      assignee: hamza,
+      assignee: peer,
       status: TaskStatus.inProgress,
       priority: TaskPriority.medium,
       dueDate: DateTime.now().add(const Duration(days: 1)),
@@ -173,8 +173,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: DashboardScreen(
-          currentUser: khadija,
-          employees: const [khadija, hamza],
+          currentUser: member,
+          employees: const [member, peer],
           tasks: [myTask, otherTask],
           onLogout: () {},
           onAddEmployee: (_) {},
@@ -183,24 +183,24 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // Khadija sees both tasks
+    // Verify both tasks render
     expect(find.text('Design UI Layout'), findsOneWidget);
     expect(find.text('Export Vector Icons'), findsOneWidget);
 
-    // Khadija does NOT see Edit or Delete buttons (Admin-only)
+    // Verify non-admin has no edit or delete access
     expect(find.byTooltip('Edit Task'), findsNothing);
     expect(find.byTooltip('Delete Task'), findsNothing);
 
-    // Khadija sees lock icon on Hamza's task
+    // Tasks assigned to peers show a lock icon
     expect(find.byIcon(Icons.lock_outline), findsOneWidget);
 
-    // Tap Hamza's task checkbox -> blocked with SnackBar
+    // Tapping locked task shows permission restriction
     await tester.ensureVisible(find.byIcon(Icons.lock_outline));
     await tester.tap(find.byIcon(Icons.lock_outline));
     await tester.pumpAndSettle();
     expect(find.text('Only Hamza Khan or Tech Lead can update this deliverable.'), findsOneWidget);
 
-    // Tap Khadija's own task checkbox -> successfully toggles to Done
+    // Tapping own task toggles status
     await tester.ensureVisible(find.byTooltip('Mark as Done'));
     await tester.tap(find.byTooltip('Mark as Done'));
     await tester.pumpAndSettle();
@@ -288,7 +288,7 @@ void main() {
     expect(find.text('Fix Authentication'), findsOneWidget);
     expect(find.text('Build Search Bar'), findsOneWidget);
 
-    // Search "my task" -> should filter only Khadija's task
+    // Search "my task" -> should filter only current user's task
     await tester.enterText(find.widgetWithText(TextField, 'Jump to a task or project...'), 'my task');
     await tester.pumpAndSettle();
 
