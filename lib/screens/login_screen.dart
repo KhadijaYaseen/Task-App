@@ -65,6 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (user != null) {
+        if (!user.isAdmin) {
+          setState(() {
+            _adminErrorMessage = 'Access restricted: Only Tech Lead (Saleem) has Admin access.';
+          });
+          return;
+        }
         setState(() => _adminErrorMessage = null);
         widget.onLoginSuccess(user);
       } else {
@@ -565,32 +571,19 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 8),
 
-        // Quick Autofill Chips
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            ActionChip(
-              avatar: const Icon(Icons.security, size: 13, color: CobaltTheme.accent),
-              label: const Text('Saleem (Lead)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-              backgroundColor: CobaltTheme.paper2,
-              onPressed: () {
-                _adminIdController.text = 'saleemali001232@gmail.com';
-                _adminPasswordController.text = 'password123';
-                setState(() {});
-              },
-            ),
-            ActionChip(
-              avatar: const Icon(Icons.person, size: 13, color: CobaltTheme.ink),
-              label: const Text('Khadija (Intern)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-              backgroundColor: CobaltTheme.paper2,
-              onPressed: () {
-                _adminIdController.text = 'khadijayaseen36@gmail.com';
-                _adminPasswordController.text = 'password123';
-                setState(() {});
-              },
-            ),
-          ],
+        // Quick Autofill Chip
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ActionChip(
+            avatar: const Icon(Icons.security, size: 13, color: CobaltTheme.accent),
+            label: const Text('Saleem (Lead)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+            backgroundColor: CobaltTheme.paper2,
+            onPressed: () {
+              _adminIdController.text = 'saleemali001232@gmail.com';
+              _adminPasswordController.text = 'password123';
+              setState(() {});
+            },
+          ),
         ),
         const SizedBox(height: 16),
 

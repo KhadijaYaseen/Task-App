@@ -452,7 +452,7 @@ Please log in to the Task App using these credentials and keep them confidential
 
 Best regards,
 Saleem (Software Architect & Tech Lead)
-Khawaja Labs Internal
+Khawaja Labs (khawajaalabs@gmail.com)
 '''.trim();
 
     showModalBottomSheet(
@@ -526,7 +526,7 @@ Khawaja Labs Internal
                     const Row(
                       children: [
                         Text('From: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: CobaltTheme.ink2)),
-                        Text('saleemali001232@gmail.com (Tech Lead)', style: TextStyle(fontSize: 12, color: CobaltTheme.muted)),
+                        Text('khawajaalabs@gmail.com (Khawaja Labs)', style: TextStyle(fontSize: 12, color: CobaltTheme.muted)),
                       ],
                     ),
                     const SizedBox(height: 4),
