@@ -557,11 +557,38 @@ Khawaja Labs (khawajaalabs@gmail.com)
               ),
               const SizedBox(height: 18),
 
+              // Action Buttons
+              CobaltKey(
+                label: 'Open in Gmail App',
+                icon: Icons.send_rounded,
+                variant: CobaltKeyVariant.primary,
+                onPressed: () async {
+                  const channel = MethodChannel('com.khawajaalabs.task_app/email');
+                  try {
+                    await channel.invokeMethod('openEmail', {
+                      'to': employee.email ?? '',
+                      'subject': 'Welcome to Khawaja Labs — ${employee.role}',
+                      'body': emailText,
+                    });
+                  } catch (_) {
+                    Clipboard.setData(ClipboardData(text: emailText));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No email client found. Credentials copied to clipboard!'),
+                          backgroundColor: CobaltTheme.ink,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
                     child: CobaltKey(
-                      label: 'Copy Credentials',
+                      label: 'Copy Text',
                       icon: Icons.copy,
                       variant: CobaltKeyVariant.outline,
                       onPressed: () {
@@ -580,7 +607,7 @@ Khawaja Labs (khawajaalabs@gmail.com)
                     child: CobaltKey(
                       label: 'Done',
                       icon: Icons.check,
-                      variant: CobaltKeyVariant.primary,
+                      variant: CobaltKeyVariant.outline,
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ),
