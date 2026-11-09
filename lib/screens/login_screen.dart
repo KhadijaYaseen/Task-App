@@ -516,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen> {
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: 'Username',
-            hintText: 'saleemali001232@gmail.com or admin',
+            hintText: 'saleemali001232@gmail.com',
             prefixIcon: const Icon(Icons.person_outline, size: 18, color: CobaltTheme.muted),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
