@@ -977,11 +977,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isAdmin ? CobaltTheme.accentWash : CobaltTheme.paper2,
+        color: isAdmin ? CobaltTheme.purpleWash : CobaltTheme.paper2,
         borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
         border: Border.all(
           color: isAdmin
-              ? CobaltTheme.accentHover.withValues(alpha: 0.25)
+              ? CobaltTheme.purpleLight
               : CobaltTheme.rule,
         ),
       ),
@@ -990,7 +990,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Icon(
             isAdmin ? Icons.admin_panel_settings : Icons.person_outline,
             size: 16,
-            color: isAdmin ? CobaltTheme.accent : CobaltTheme.ink2,
+            color: isAdmin ? CobaltTheme.purplePrimary : CobaltTheme.ink2,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1008,18 +1008,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             behavior: HitTestBehavior.opaque,
             onTap: widget.onLogout,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: CobaltTheme.rule2),
+                gradient: CobaltTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: [
+                  BoxShadow(
+                    color: CobaltTheme.purplePrimary.withAlpha(60),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Text(
                 'Switch',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: CobaltTheme.accent,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -1096,7 +1102,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildMetricBox(
             label: 'Active',
             count: _activeCount,
-            countColor: CobaltTheme.ink,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFAF5FF), Color(0xFFF3E8FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderColor: const Color(0xFFDDD6FE),
+            countColor: CobaltTheme.purplePrimary,
+            icon: Icons.bolt_rounded,
           ),
         ),
         const SizedBox(width: 10),
@@ -1104,7 +1117,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildMetricBox(
             label: 'In Progress',
             count: _inProgressCount,
-            countColor: CobaltTheme.statusWarning,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderColor: const Color(0xFFFDE68A),
+            countColor: const Color(0xFFD97706),
+            icon: Icons.hourglass_top_rounded,
           ),
         ),
         const SizedBox(width: 10),
@@ -1112,7 +1132,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildMetricBox(
             label: 'Completed',
             count: _completedCount,
-            countColor: CobaltTheme.statusSuccess,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF0FDF4), Color(0xFFDCFCE7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderColor: const Color(0xFFBBF7D0),
+            countColor: const Color(0xFF16A34A),
+            icon: Icons.check_circle_rounded,
           ),
         ),
       ],
@@ -1122,31 +1149,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMetricBox({
     required String label,
     required int count,
+    required Gradient gradient,
+    required Color borderColor,
     required Color countColor,
+    required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(CobaltTheme.radiusCard),
-        border: Border.all(color: CobaltTheme.rule2),
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(CobaltTheme.radiusCardLarge),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: CobaltTheme.muted,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: CobaltTheme.ink2,
+                ),
+              ),
+              Icon(icon, size: 14, color: countColor.withAlpha(200)),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.w800,
               color: countColor,
               letterSpacing: -0.6,
@@ -1166,10 +1209,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: CobaltTheme.paper2,
-        borderRadius: BorderRadius.circular(CobaltTheme.radiusCard),
+        borderRadius: BorderRadius.circular(CobaltTheme.radiusCardLarge),
         border: Border.all(color: CobaltTheme.rule),
       ),
       child: Row(
@@ -1181,13 +1224,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: () => setState(() => _selectedFilterIndex = index),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 140),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  gradient: isSelected ? CobaltTheme.primaryGradient : null,
+                  color: isSelected ? null : Colors.transparent,
                   borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
-                  border: isSelected
-                      ? Border.all(color: CobaltTheme.rule2)
-                      : Border.all(color: Colors.transparent),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: CobaltTheme.purplePrimary.withAlpha(80),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Text(
                   filters[index],
@@ -1195,7 +1245,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? CobaltTheme.ink : CobaltTheme.muted,
+                    color: isSelected ? Colors.white : CobaltTheme.muted,
                   ),
                 ),
               ),
@@ -1278,15 +1328,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final canToggle = widget.currentUser.isAdmin || isAssignedToMe;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(CobaltTheme.radiusCard),
+        borderRadius: BorderRadius.circular(CobaltTheme.radiusCardLarge),
         border: Border.all(
-          color: isAssignedToMe ? CobaltTheme.accent : CobaltTheme.rule2,
-          width: isAssignedToMe ? 1.5 : 1.0,
+          color: isAssignedToMe
+              ? CobaltTheme.purplePrimary.withAlpha(200)
+              : CobaltTheme.rule2,
+          width: isAssignedToMe ? 1.6 : 1.0,
         ),
+        boxShadow: isAssignedToMe
+            ? [
+                BoxShadow(
+                  color: CobaltTheme.purplePrimary.withAlpha(28),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1295,17 +1362,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               // Project Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: CobaltTheme.paper2,
-                  borderRadius: BorderRadius.circular(4),
+                  color: CobaltTheme.purpleWash,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: CobaltTheme.purpleLight),
                 ),
                 child: Text(
                   task.projectName,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: CobaltTheme.accent,
+                    color: CobaltTheme.purplePrimary,
                   ),
                 ),
               ),
@@ -1382,7 +1450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 17, color: CobaltTheme.accent),
+                      icon: const Icon(Icons.edit_outlined, size: 17, color: CobaltTheme.purplePrimary),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       tooltip: 'Edit Task',
@@ -1464,7 +1532,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               CircleAvatar(
                 radius: 11,
                 backgroundColor: task.assignee.isAdmin
-                    ? CobaltTheme.accent
+                    ? CobaltTheme.purplePrimary
                     : CobaltTheme.paper3,
                 child: Text(
                   task.assignee.initials,
@@ -1487,17 +1555,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (isAssignedToMe) ...[
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: CobaltTheme.accentWash,
-                    borderRadius: BorderRadius.circular(3),
+                    color: CobaltTheme.purpleWash,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: CobaltTheme.purpleLight),
                   ),
                   child: const Text(
                     'YOU',
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w800,
-                      color: CobaltTheme.accent,
+                      color: CobaltTheme.purplePrimary,
                     ),
                   ),
                 ),
