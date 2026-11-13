@@ -262,32 +262,39 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: CobaltTheme.purplePrimary,
-                    child: Text(
-                      widget.currentUser.initials,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
+              Expanded(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: CobaltTheme.purplePrimary,
+                      child: Text(
+                        widget.currentUser.initials,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Good evening, ${widget.currentUser.name} 👋',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: CobaltTheme.ink),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good evening, ${widget.currentUser.name} 👋',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: CobaltTheme.ink),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            widget.currentUser.role,
+                            style: const TextStyle(fontSize: 11, color: CobaltTheme.muted),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      Text(
-                        widget.currentUser.role,
-                        style: const TextStyle(fontSize: 11, color: CobaltTheme.muted),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
