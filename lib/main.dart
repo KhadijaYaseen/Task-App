@@ -135,6 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedFilterIndex = 0; // 0: All, 1: My Tasks, 2: In Progress, 3: Completed
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String? _hoveredTaskId;
   late List<AttendanceRecord> _attendanceRecords;
 
   @override
@@ -1326,57 +1327,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDone = task.status == TaskStatus.done;
     final isAssignedToMe = task.assignee.id == widget.currentUser.id;
     final canToggle = widget.currentUser.isAdmin || isAssignedToMe;
+    final isHovered = _hoveredTaskId == task.id;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(CobaltTheme.radiusCardLarge),
-        border: Border.all(
-          color: isAssignedToMe
-              ? CobaltTheme.purplePrimary.withAlpha(200)
-              : CobaltTheme.rule2,
-          width: isAssignedToMe ? 1.6 : 1.0,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredTaskId = task.id),
+      onExit: (_) => setState(() {
+        if (_hoveredTaskId == task.id) _hoveredTaskId = null;
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(CobaltTheme.radiusCardLarge),
+          border: Border.all(
+            color: isHovered
+                ? CobaltTheme.purplePrimary
+                : CobaltTheme.rule2,
+            width: isHovered ? 1.8 : 1.0,
+          ),
+          boxShadow: isHovered
+              ? [
+                  BoxShadow(
+                    color: CobaltTheme.purplePrimary.withAlpha(35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : const [
+                  BoxShadow(
+                    color: Color(0x06000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  ),
+                ],
         ),
-        boxShadow: isAssignedToMe
-            ? [
-                BoxShadow(
-                  color: CobaltTheme.purplePrimary.withAlpha(28),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : const [
-                BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Project Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: CobaltTheme.purpleWash,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: CobaltTheme.purpleLight),
-                ),
-                child: Text(
-                  task.projectName,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: CobaltTheme.purplePrimary,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Project Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: CobaltTheme.purpleWash,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: CobaltTheme.purpleLight),
+                  ),
+                  child: Text(
+                    task.projectName,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: CobaltTheme.purplePrimary,
+                    ),
                   ),
                 ),
-              ),
               const Spacer(),
               // Priority Dot
               Container(
@@ -1601,7 +1609,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-    );
+    ),);
   }
 
   Color _getPriorityColor(TaskPriority priority) {

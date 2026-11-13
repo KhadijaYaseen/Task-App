@@ -280,14 +280,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.play_arrow, size: 14, color: CobaltTheme.accent),
+                          Icon(Icons.play_arrow_rounded, size: 14, color: CobaltTheme.purplePrimary),
                           SizedBox(width: 4),
                           Text(
                             'KHAWAJA LABS INTERNAL',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: CobaltTheme.accent,
+                              color: CobaltTheme.purplePrimary,
                               letterSpacing: 0.8,
                             ),
                           ),
@@ -412,14 +412,15 @@ class _LoginScreenState extends State<LoginScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          gradient: isSelected ? CobaltTheme.primaryGradient : null,
+          color: isSelected ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(CobaltTheme.radiusInput - 2),
           boxShadow: isSelected
-              ? const [
+              ? [
                   BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+                    color: CobaltTheme.purplePrimary.withAlpha(70),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ]
               : null,
@@ -430,7 +431,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            color: isSelected ? CobaltTheme.ink : CobaltTheme.muted,
+            color: isSelected ? Colors.white : CobaltTheme.muted,
           ),
         ),
       ),
@@ -444,15 +445,16 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: CobaltTheme.paper2,
-                borderRadius: BorderRadius.circular(6),
+                color: CobaltTheme.purpleWash,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: CobaltTheme.purpleLight),
               ),
               child: const Icon(
                 Icons.admin_panel_settings_outlined,
                 size: 18,
-                color: CobaltTheme.ink2,
+                color: CobaltTheme.purplePrimary,
               ),
             ),
             const SizedBox(width: 10),
@@ -522,6 +524,14 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
               borderSide: const BorderSide(color: CobaltTheme.rule2),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+              borderSide: const BorderSide(color: CobaltTheme.purplePrimary, width: 2),
+            ),
+            floatingLabelStyle: const TextStyle(
+              color: CobaltTheme.purplePrimary,
+              fontWeight: FontWeight.w600,
+            ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
@@ -548,6 +558,14 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
               borderSide: const BorderSide(color: CobaltTheme.rule2),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+              borderSide: const BorderSide(color: CobaltTheme.purplePrimary, width: 2),
+            ),
+            floatingLabelStyle: const TextStyle(
+              color: CobaltTheme.purplePrimary,
+              fontWeight: FontWeight.w600,
+            ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
           onSubmitted: (_) => _handleAdminLogin(),
@@ -565,7 +583,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: const Text(
               'Forgot Password?',
-              style: TextStyle(fontSize: 12, color: CobaltTheme.accent, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 12, color: CobaltTheme.purplePrimary, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -575,12 +593,14 @@ class _LoginScreenState extends State<LoginScreen> {
         Align(
           alignment: Alignment.centerLeft,
           child: ActionChip(
-            avatar: const Icon(Icons.security, size: 13, color: CobaltTheme.accent),
-            label: const Text('Saleem (Lead)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-            backgroundColor: CobaltTheme.paper2,
+            avatar: const Icon(Icons.security, size: 13, color: Colors.white),
+            label: const Text('Saleem (Lead)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+            backgroundColor: CobaltTheme.purplePrimary,
+            elevation: 1,
+            shadowColor: CobaltTheme.purplePrimary.withAlpha(80),
             onPressed: () {
-              _adminIdController.text = 'saleemali001232@gmail.com';
-              _adminPasswordController.text = 'password123';
+              _adminIdController.text = 'admin';
+              _adminPasswordController.text = 'admin123';
               setState(() {});
             },
           ),
@@ -611,15 +631,16 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: CobaltTheme.paper2,
-                borderRadius: BorderRadius.circular(6),
+                color: CobaltTheme.purpleWash,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: CobaltTheme.purpleLight),
               ),
               child: const Icon(
                 Icons.badge_outlined,
                 size: 18,
-                color: CobaltTheme.ink2,
+                color: CobaltTheme.purplePrimary,
               ),
             ),
             const SizedBox(width: 10),
@@ -670,10 +691,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? CobaltTheme.accentWash : Colors.white,
+                  color: isSelected ? CobaltTheme.purpleWash : Colors.white,
                   borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                   border: Border.all(
-                    color: isSelected ? CobaltTheme.accent : CobaltTheme.rule2,
+                    color: isSelected ? CobaltTheme.purplePrimary : CobaltTheme.rule2,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -681,7 +702,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: isSelected ? CobaltTheme.accent : CobaltTheme.paper3,
+                      backgroundColor: isSelected ? CobaltTheme.purplePrimary : CobaltTheme.paper3,
                       child: Text(
                         member.initials,
                         style: TextStyle(

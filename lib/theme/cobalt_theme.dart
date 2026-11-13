@@ -100,9 +100,23 @@ class CobaltTheme {
       useMaterial3: true,
       scaffoldBackgroundColor: paper,
       colorScheme: const ColorScheme.light(
-        primary: accent,
+        primary: purplePrimary,
         surface: Colors.white,
         error: statusError,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusInput),
+          borderSide: const BorderSide(color: purplePrimary, width: 2.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusInput),
+          borderSide: const BorderSide(color: rule2),
+        ),
+        floatingLabelStyle: const TextStyle(
+          color: purplePrimary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
