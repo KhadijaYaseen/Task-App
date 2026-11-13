@@ -25,10 +25,47 @@ class CobaltTheme {
   static const Color statusError = Color(0xFFDC2626);
   static const Color statusInfo = Color(0xFF2563EB);
 
+  // Modern Purple & Gradient Palette
+  static const Color purplePrimary = Color(0xFF7C3AED);
+  static const Color purpleSecondary = Color(0xFF6366F1);
+  static const Color purpleWash = Color(0xFFFAF5FF);
+  static const Color purpleLight = Color(0xFFEDE9FE);
+  static const Color purpleDark = Color(0xFF581C87);
+
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF7C3AED), Color(0xFF4F46E5)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient accentHeroGradient = LinearGradient(
+    colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const List<BoxShadow> softCardShadow = [
+    BoxShadow(
+      color: Color(0x080F172A),
+      blurRadius: 16,
+      offset: Offset(0, 4),
+    ),
+  ];
+
+  static const List<BoxShadow> purpleGlowShadow = [
+    BoxShadow(
+      color: Color(0x287C3AED),
+      blurRadius: 18,
+      offset: Offset(0, 6),
+    ),
+  ];
+
   // Geometry
   static const double radiusCard = 8.0;
-  static const double radiusInput = 6.0;
-  static const double radiusButton = 6.0;
+  static const double radiusCardLarge = 16.0;
+  static const double radiusCardXLarge = 20.0;
+  static const double radiusInput = 8.0;
+  static const double radiusButton = 8.0;
   static const double radiusPill = 20.0;
 
   // Compatibility Aliases (prevents undefined getter errors across versions)

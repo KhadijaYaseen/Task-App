@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'models/employee.dart';
 import 'models/task_item.dart';
+import 'models/attendance_record.dart';
 import 'screens/login_screen.dart';
 import 'screens/team_screen.dart';
 import 'screens/stats_screen.dart';
+import 'screens/attendance_screen.dart';
 import 'services/supabase_service.dart';
 import 'theme/cobalt_theme.dart';
 import 'widgets/cobalt_key.dart';
@@ -109,6 +111,8 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback onLogout;
   final Function(Employee newEmp) onAddEmployee;
   final Function(Employee emp)? onDeleteEmployee;
+  final List<AttendanceRecord>? initialAttendanceRecords;
+  final Function(AttendanceRecord newRecord)? onAddAttendance;
 
   const DashboardScreen({
     super.key,
@@ -118,6 +122,8 @@ class DashboardScreen extends StatefulWidget {
     required this.onLogout,
     required this.onAddEmployee,
     this.onDeleteEmployee,
+    this.initialAttendanceRecords,
+    this.onAddAttendance,
   });
 
   @override
@@ -125,10 +131,28 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _currentTabIndex = 0; // 0: Tasks, 1: Analytics
+  int _currentTabIndex = 0; // 0: Tasks, 1: Attendance, 2: Analytics
   int _selectedFilterIndex = 0; // 0: All, 1: My Tasks, 2: In Progress, 3: Completed
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  late List<AttendanceRecord> _attendanceRecords;
+
+  @override
+  void initState() {
+    super.initState();
+    _attendanceRecords = widget.initialAttendanceRecords != null
+        ? List.from(widget.initialAttendanceRecords!)
+        : AttendanceRecord.getSampleRecords(widget.employees);
+  }
+
+  void _handleAddAttendance(AttendanceRecord newRecord) {
+    setState(() {
+      _attendanceRecords.insert(0, newRecord);
+    });
+    if (widget.onAddAttendance != null) {
+      widget.onAddAttendance!(newRecord);
+    }
+  }
 
   @override
   void dispose() {
@@ -569,7 +593,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_currentTabIndex == 1) ...[
+                if (_currentTabIndex != 0) ...[
                   Container(
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
@@ -644,7 +668,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: CircleAvatar(
                 radius: 14,
                 backgroundColor: widget.currentUser.isAdmin
-                    ? CobaltTheme.accent
+                    ? CobaltTheme.purplePrimary
                     : CobaltTheme.paper3,
                 child: Text(
                   widget.currentUser.initials,
@@ -659,7 +683,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Action Keycap: "+ New Task" on Tasks tab, "View Tasks" on Analytics tab
+          // Action Keycap: "+ New Task" on Tasks tab, "View Tasks" on other tabs
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: _currentTabIndex == 0
@@ -699,10 +723,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: _currentTabIndex == 0 ? CobaltTheme.accentWash : Colors.transparent,
+                            color: _currentTabIndex == 0 ? CobaltTheme.purpleWash : Colors.transparent,
                             borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                             border: Border.all(
-                              color: _currentTabIndex == 0 ? CobaltTheme.accent : Colors.transparent,
+                              color: _currentTabIndex == 0 ? CobaltTheme.purplePrimary : Colors.transparent,
                             ),
                           ),
                           child: Row(
@@ -711,7 +735,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Icon(
                                 Icons.assignment_outlined,
                                 size: 15,
-                                color: _currentTabIndex == 0 ? CobaltTheme.accent : CobaltTheme.muted,
+                                color: _currentTabIndex == 0 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -719,7 +743,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: _currentTabIndex == 0 ? FontWeight.w800 : FontWeight.w600,
-                                  color: _currentTabIndex == 0 ? CobaltTheme.accent : CobaltTheme.muted,
+                                  color: _currentTabIndex == 0 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
                                 ),
                               ),
                             ],
@@ -727,7 +751,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: InkWell(
                         onTap: () => setState(() => _currentTabIndex = 1),
@@ -735,10 +759,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: _currentTabIndex == 1 ? CobaltTheme.accentWash : Colors.transparent,
+                            color: _currentTabIndex == 1 ? CobaltTheme.purpleWash : Colors.transparent,
                             borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
                             border: Border.all(
-                              color: _currentTabIndex == 1 ? CobaltTheme.accent : Colors.transparent,
+                              color: _currentTabIndex == 1 ? CobaltTheme.purplePrimary : Colors.transparent,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                size: 15,
+                                color: _currentTabIndex == 1 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Attendance',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _currentTabIndex == 1 ? FontWeight.w800 : FontWeight.w600,
+                                  color: _currentTabIndex == 1 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _currentTabIndex = 2),
+                        borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _currentTabIndex == 2 ? CobaltTheme.purpleWash : Colors.transparent,
+                            borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+                            border: Border.all(
+                              color: _currentTabIndex == 2 ? CobaltTheme.purplePrimary : Colors.transparent,
                             ),
                           ),
                           child: Row(
@@ -747,15 +807,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Icon(
                                 Icons.pie_chart_outline_rounded,
                                 size: 15,
-                                color: _currentTabIndex == 1 ? CobaltTheme.accent : CobaltTheme.muted,
+                                color: _currentTabIndex == 2 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 'Analytics',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: _currentTabIndex == 1 ? FontWeight.w800 : FontWeight.w600,
-                                  color: _currentTabIndex == 1 ? CobaltTheme.accent : CobaltTheme.muted,
+                                  fontWeight: _currentTabIndex == 2 ? FontWeight.w800 : FontWeight.w600,
+                                  color: _currentTabIndex == 2 ? CobaltTheme.purplePrimary : CobaltTheme.muted,
                                 ),
                               ),
                             ],
@@ -773,11 +833,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: _currentTabIndex == 0
           ? _buildTasksTab()
-          : StatsScreen(
-              tasks: widget.tasks,
-              employees: widget.employees,
-              onBackToTasks: () => setState(() => _currentTabIndex = 0),
-            ),
+          : _currentTabIndex == 1
+              ? AttendanceScreen(
+                  currentUser: widget.currentUser,
+                  employees: widget.employees,
+                  attendanceRecords: _attendanceRecords,
+                  onAddAttendance: _handleAddAttendance,
+                )
+              : StatsScreen(
+                  tasks: widget.tasks,
+                  employees: widget.employees,
+                  attendanceRecords: _attendanceRecords,
+                  onBackToTasks: () => setState(() => _currentTabIndex = 0),
+                ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -794,7 +862,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
           backgroundColor: Colors.white,
           elevation: 0,
-          selectedItemColor: CobaltTheme.accent,
+          selectedItemColor: CobaltTheme.purplePrimary,
           unselectedItemColor: CobaltTheme.muted,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
@@ -803,6 +871,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icon(Icons.assignment_outlined),
               activeIcon: Icon(Icons.assignment),
               label: 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month_outlined),
+              activeIcon: Icon(Icons.calendar_month_rounded),
+              label: 'Attendance',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.pie_chart_outline_rounded),

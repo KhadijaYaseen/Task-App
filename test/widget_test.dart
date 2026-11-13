@@ -303,4 +303,66 @@ void main() {
     expect(find.text('Fix Authentication'), findsOneWidget);
     expect(find.text('Build Search Bar'), findsOneWidget);
   });
+
+  testWidgets('Attendance Tab renders Hero Clock In card, Calendar, and Attendance Ledger for Admin', (WidgetTester tester) async {
+    await tester.pumpWidget(const TaskApp());
+
+    // Login as Admin
+    await tester.enterText(find.bySemanticsLabel('Username'), 'admin');
+    await tester.enterText(find.bySemanticsLabel('Password'), 'admin123');
+    await tester.tap(find.text('Login as Tech Lead'));
+    await tester.pumpAndSettle();
+
+    // Switch to Attendance Tab
+    await tester.tap(find.text('Attendance').first);
+    await tester.pumpAndSettle();
+
+    // Verify Admin Attendance Controls & Roster selector
+    expect(find.text('Tech Lead Attendance Controls'), findsOneWidget);
+    expect(find.text('All Roster'), findsOneWidget);
+
+    // Verify Hero Clock In / Punch Card (Image 2 style)
+    expect(find.text('HOURS LOGGED TODAY'), findsOneWidget);
+    expect(find.text('CLOCKED IN'), findsOneWidget);
+    expect(find.text('Clock Out'), findsOneWidget);
+    expect(find.text('CLOCK IN'), findsOneWidget);
+    expect(find.text('SHIFT TARGET'), findsOneWidget);
+    expect(find.text('OVERTIME'), findsOneWidget);
+
+    // Verify Monthly Calendar (Image 1 style)
+    expect(find.text('November 2026'), findsOneWidget);
+
+    // Test Clock In / Clock Out toggle
+    await tester.tap(find.text('Clock Out'));
+    await tester.pumpAndSettle();
+    expect(find.text('OFFLINE'), findsOneWidget);
+    expect(find.text('Clock In'), findsOneWidget);
+  });
+
+  testWidgets('Attendance Role Privacy Guard: Non-admin only sees own records and confidentiality notice', (WidgetTester tester) async {
+    await tester.pumpWidget(const TaskApp());
+
+    // Switch to Team Member tab and login as Khadija Yaseen
+    await tester.tap(find.text('🚀 Team Member'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue as Khadija Yaseen'));
+    await tester.pumpAndSettle();
+
+    // Switch to Attendance Tab
+    await tester.tap(find.text('Attendance').first);
+    await tester.pumpAndSettle();
+
+    // Verify Confidential Privacy Notice
+    expect(find.textContaining('Confidential: Attendance is strictly private between you & Tech Lead (Saleem).'), findsOneWidget);
+
+    // Verify Admin controls are NOT present
+    expect(find.text('Tech Lead Attendance Controls'), findsNothing);
+    expect(find.text('All Roster'), findsNothing);
+
+    // Verify Khadija's name is on her attendance records
+    expect(find.text('Khadija Yaseen'), findsWidgets);
+
+    // Verify Saleem (Lead) individual records are NOT visible in Khadija's ledger
+    expect(find.text('Saleem (Tech Lead)'), findsNothing);
+  });
 }
