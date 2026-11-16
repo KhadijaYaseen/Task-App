@@ -135,10 +135,10 @@ class AttendanceRecord {
         employeeName: khadija.name,
         date: DateTime(2026, 11, 16),
         checkInTime: '9:00 PM',
-        checkOutTime: null,
-        hours: 0.0,
+        checkOutTime: '1:00 AM',
+        hours: 4.0,
         status: AttendanceStatus.present,
-        notes: 'Task-App Development (Ongoing Shift)',
+        notes: 'Attendance Engine: Live Shift Ticker, 9PM-2AM Midnight Rollover & Auto-Duration Calculator',
       ),
       AttendanceRecord(
         id: 'att_ky_26',
