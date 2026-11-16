@@ -128,7 +128,40 @@ class AttendanceRecord {
         notes: 'Team Mentorship & Review',
       ),
 
-      // Khadija Yaseen Records (Verified 19 Oct - 13 Nov)
+      // Khadija Yaseen Records (Verified 19 Oct - 16 Nov)
+      AttendanceRecord(
+        id: 'att_ky_27',
+        employeeId: khadija.id,
+        employeeName: khadija.name,
+        date: DateTime(2026, 11, 16),
+        checkInTime: '9:00 PM',
+        checkOutTime: null,
+        hours: 0.0,
+        status: AttendanceStatus.present,
+        notes: 'Task-App Development (Ongoing Shift)',
+      ),
+      AttendanceRecord(
+        id: 'att_ky_26',
+        employeeId: khadija.id,
+        employeeName: khadija.name,
+        date: DateTime(2026, 11, 15),
+        checkInTime: '--',
+        checkOutTime: '--',
+        hours: 0.0,
+        status: AttendanceStatus.leave,
+        notes: 'Weekend Off (Sunday Chutti)',
+      ),
+      AttendanceRecord(
+        id: 'att_ky_25',
+        employeeId: khadija.id,
+        employeeName: khadija.name,
+        date: DateTime(2026, 11, 14),
+        checkInTime: '8:00 PM',
+        checkOutTime: '12:00 AM',
+        hours: 4.0,
+        status: AttendanceStatus.present,
+        notes: 'Task-App Testing & UI Polish',
+      ),
       AttendanceRecord(
         id: 'att_ky_24',
         employeeId: khadija.id,
