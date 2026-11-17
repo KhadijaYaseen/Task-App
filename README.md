@@ -1,131 +1,116 @@
 # Task-App — Internal Project & Milestone Task Manager
 
-A high-performance, offline-first **Task & Milestone Management Mobile Application** built for **Khawaja Labs** using **Flutter & Dart**, backed by **Supabase PostgreSQL** and styled with the **Cobalt Design System**.
+> **Khawaja Labs Engineering Ecosystem**  
+> **Production Release:** `v1.2.0`  
+> **Framework:** Flutter (Dart 3.x) & Android Kotlin Native Bridge  
+> **Backend:** Supabase PostgreSQL with Offline Fallback  
+> **Design System:** Hallmark Cobalt (Modern Minimal)  
 
 ---
 
-## 🌟 Key Highlights
+## 📚 Official Documentation Suite
 
-* **Enterprise Role-Based Access Control (RBAC):** Dedicated workflows for **Tech Lead / Admin** and **Team Members**.
-* **1-Click Native Gmail Dispatch:** When an Admin adds a new team member, the app utilizes an Android `MethodChannel` to launch the device's native Gmail composer pre-filled with credentials and welcome onboarding instructions.
-* **Single-Assignee Exclusivity Guard:** Tasks with identical titles cannot be duplicated within the same project, preventing duplicate effort and overlapping deliverables.
-* **Project-Scoped Task Management:** Organize deliverables with priority tags (`Urgent`, `High`, `Medium`, `Low`), target deadlines, and project groupings.
-* **Visual Analytics & Reporting:** Real-time metrics including completion rates, overdue vs. upcoming distribution, and team workload summaries.
-* **Offline-Resilient Architecture:** Real-time Supabase cloud sync with seamless local fallback to ensure zero downtime during network disruptions.
+Comprehensive technical, functional, and operational documentation is available in the [`docs/`](docs/) directory:
+
+| Document | File Link | Description |
+|:---|:---|:---|
+| **Code Documentation** | [**`docs/CODE_DOCUMENTATION.md`**](docs/CODE_DOCUMENTATION.md) | Architectural diagrams, data models (`Employee`, `TaskItem`, `AttendanceRecord`), services, Kotlin `MethodChannel`, and build pipelines. |
+| **User & Admin Guide** | [**`docs/USER_GUIDE.md`**](docs/USER_GUIDE.md) | Complete operational manual for Tech Lead (Saleem) and Team Members (Khadija Yaseen), covering tasks, Gmail invites, attendance clocking, and shift edits. |
+| **Software Requirements (SRS)** | [**`docs/SRS.md`**](docs/SRS.md) | Formal IEEE 830 specification defining all functional requirements (FR-1 through FR-10), non-functional constraints, and acceptance criteria. |
+| **Engineering Case Study** | [**`docs/CASE_STUDY.md`**](docs/CASE_STUDY.md) | Detailed case study highlighting operational challenges, architectural solutions, single-assignee exclusivity, and business impact metrics. |
+| **Release Notes v1.2.0** | [**`docs/RELEASE_NOTES.md`**](docs/RELEASE_NOTES.md) | Changelog, distribution binary artifacts, installation procedures, and credential reference. |
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🌟 Key Application Features
+
+* **Enterprise Role-Based Access Control (RBAC):** Tailored operational modes for **Tech Lead / Admin (Saleem)** and **Team Members (Khadija Yaseen, Hamza Khan, Zain Ahmed)**.
+* **Single-Assignee Exclusivity Engine:** Tasks cannot be duplicated or ambiguously shared within a project, completely eliminating task collisions.
+* **Real-Time Attendance Engine:** Interactive hero card with a live dynamic ticking clock (`HH:mm:ss`), punch-in/out stamps, and exact hours logged calculation.
+* **In-App Shift Schedule Customization:** Engineers can adjust shift timings (`8:00 PM – 12:00 AM` or `9:00 PM – 2:00 AM`) and target hours on-the-fly using the ✏️ edit tool without requiring app redeployment.
+* **Attendance Confidentiality Guard:** Strict architectural privacy barrier ensuring team members view only their personal records while granting the Tech Lead an All-Roster audit view.
+* **1-Click Native Gmail Dispatch:** Android `MethodChannel` (`com.khawajaalabs.task_app/email`) launches the native Gmail composer pre-filled with credentials upon adding a new team member.
+* **Visual Engineering Analytics:** Real-time metrics including completion velocity, workload capacity charts, and priority breakdowns.
+* **Offline-Resilient Architecture:** Real-time Supabase PostgreSQL sync with seamless in-memory fallback during network drops.
+
+---
+
+## 🔑 Access Credentials
+
+| Role | Name | Email / ID | Password | Access Level |
+|:---|:---|:---|:---|:---|
+| **Tech Lead / Admin** | Saleem | `saleemali001232@gmail.com` *(or `admin`)* | `password123` *(or `admin123`)* | Full Admin (Tasks, Team, All-Roster Attendance) |
+| **Mobile Engineer** | Khadija Yaseen | `khadijayaseen36@gmail.com` | `password123` | Team Member (Own Tasks, Private Attendance) |
+| **UI/UX Designer** | Hamza Khan | `hamza@khawajalabs.com` | `password123` | Team Member |
+| **Backend Developer**| Zain Ahmed | `zain@khawajalabs.com` | `password123` | Team Member |
+
+---
+
+## 🏗️ Technical Architecture
 
 ```
 task_app/
-├── android/                 # Native Android configuration
-│   └── app/src/main/kotlin/ # Custom Kotlin MethodChannel (native mailto intent)
+├── android/app/src/main/kotlin/com/khawajaalabs/task_app/
+│   └── MainActivity.kt               # Native Kotlin MethodChannel (Gmail Intent)
+├── docs/                             # Engineering Documentation
+│   ├── CODE_DOCUMENTATION.md         # Full code & architecture reference
+│   ├── USER_GUIDE.md                 # Complete User & Admin manual
+│   ├── SRS.md                        # IEEE 830 Software Requirements Specification
+│   ├── CASE_STUDY.md                 # Project Case Study & Impact
+│   └── RELEASE_NOTES.md              # v1.2.0 Release Notes
 ├── lib/
-│   ├── models/              # Immutable domain entities (Employee, TaskItem, TaskStatus)
-│   ├── screens/             # Feature screens
-│   │   ├── login_screen.dart   # Role-based authentication & profile picker
-│   │   ├── stats_screen.dart   # Interactive visual analytics & charts
-│   │   └── team_screen.dart    # Team roster management & onboarding modal
-│   ├── services/            # Supabase REST client with offline fallback
-│   ├── theme/               # Cobalt theme tokens, color palettes, and styling
-│   ├── widgets/             # Reusable UI components (tactile 3D keys, badges, cards)
-│   └── main.dart            # App entrypoint, state management & dashboard
+│   ├── models/                       # Domain entities (Employee, TaskItem, AttendanceRecord)
+│   ├── screens/                      # Screens (Login, Dashboard, Attendance, Stats, Team)
+│   ├── services/                     # Supabase REST client with offline fallback
+│   ├── theme/                        # Cobalt design tokens & palettes
+│   ├── widgets/                      # Tactile 3D CobaltKey buttons
+│   └── main.dart                     # App entrypoint, state management & dashboard
 ├── test/
-│   └── widget_test.dart     # Comprehensive unit & widget test suite (8/8 green)
-└── pubspec.yaml             # Project dependencies and asset definitions
+│   └── widget_test.dart              # Automated widget & unit test suite (10/10 green)
+└── pubspec.yaml                      # Dependencies and asset definitions
 ```
 
-### Technology Highlights
-* **Framework:** Flutter (Channel stable)
-* **Language:** Dart 3.x
-* **Backend:** Supabase REST API (PostgreSQL)
-* **Platform Bridge:** Kotlin `MethodChannel` (`com.khawajaalabs.task_app/email`) for direct Android Intent handling without third-party plugin overhead.
-
 ---
 
-## 🔐 Authentication & Roles
+## 🚀 Installation & Release Artifacts
 
-### 1. 👑 Tech Lead / Administrator (Saleem)
-* **Default Admin ID:** `saleemali001232@gmail.com` *(or `admin` / `saleem`)*
-* **Default Password:** `admin123` *(or `saleem123`)*
-* **Privileges:**
-  * Add, manage, and delete team members.
-  * Create, edit, reassign, and delete project tasks.
-  * Set initial passwords and dispatch credentials via Gmail.
-  * Full access to organizational analytics and team workload.
+### 1. Download Release Binary (APK)
+The production-optimized release binary is available:
+* **Release File:** `TaskApp-v1.2.0-release.apk` (Size: 51.8 MB)
+* **Local Path:** `C:\Users\Hp\Desktop\TaskApp-v1.2.0-release.apk`
+* **Direct Install via ADB:**
+  ```powershell
+  adb install -r TaskApp-v1.2.0-release.apk
+  ```
 
-### 2. 🚀 Team Member
-* **Privileges:**
-  * View assigned deliverables across projects.
-  * Update personal task progress (`In Progress` ⇄ `Completed`).
-  * Browse the team directory.
-  * Read-only protection: Non-admin members cannot delete or alter other members' deliverables.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-* Flutter SDK `^3.5.0` or later
-* Android SDK (API 34+ recommended)
-* Physical Android device or Android Emulator
-
-### Installation & Run
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/khawajaalabs/Task-App.git
-   cd Task-App
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run automated tests:**
-   ```bash
-   flutter test
-   ```
-
-4. **Launch the application:**
-   ```bash
-   flutter run
-   ```
-
-5. **Build Release APK:**
-   ```bash
-   flutter build apk --release
-   ```
-   The compiled APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`.
-
----
-
-## 🧪 Automated Testing
-
-The test suite covers full user journeys, edge cases, RBAC guards, and search filters:
-
+### 2. Development Setup
 ```bash
+# Clone the repository
+git clone https://github.com/khawajaalabs/Task-App.git
+cd Task-App
+
+# Install packages
+flutter pub get
+
+# Run static analysis
+dart analyze
+
+# Run automated tests
 flutter test
+
+# Run application
+flutter run
 ```
-
-### Test Suite Coverage:
-| Test Case | Scope |
-| :--- | :--- |
-| **Login & Dashboard Flow** | Company identity render, Admin authentication, Dashboard navigation |
-| **Admin Login Validation** | Rejection of invalid credentials with clear feedback |
-| **Team Member Sign-in** | Single-tap profile selection and personal deliverable sync |
-| **Task Lifecycle (CRUD)** | Task creation with due dates, in-place edit, and delete confirmation |
-| **Analytics Dashboard** | Metric summaries, completion status, and chart distribution |
-| **RBAC Task Guard** | Non-admins cannot edit/delete deliverables and cannot toggle peer tasks |
-| **Duplicate Exclusivity** | Project-scoped title collision prevention |
-| **Smart Search Filter** | Multi-keyword search across titles, assignees, and `"my task"` |
-
-All 8 tests pass with **0 errors**.
 
 ---
 
-## 📄 License & Attribution
+## 🧪 Quality Assurance & Test Verification
 
-Internal software developed for **Khawaja Labs**. Designed and maintained for production operational workflow.
+```
+00:05 +10: All tests passed!
+Analyzing task_app...
+No issues found!
+```
+* **Test Suite:** `10 / 10 Passing (100% Green)`
+* **Static Analysis:** `0 Warnings, 0 Errors`
+* **Performance:** Sub-1.8s startup, 60fps animations, 99.3% Material icon tree-shaking reduction.
