@@ -75,7 +75,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   String get _overtimeFormatted {
-    const targetSeconds = 5 * 3600; // 5h target for 9:00 PM - 2:00 AM shift
+    final targetHours = widget.currentUser.shiftTarget.contains('5') ? 5 : 4;
+    final targetSeconds = targetHours * 3600;
     if (_secondsLogged > targetSeconds) {
       final overtimeSeconds = _secondsLogged - targetSeconds;
       final otHours = overtimeSeconds ~/ 3600;
@@ -126,12 +127,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         checkOutTime: null,
         hours: 0.0,
         status: AttendanceStatus.present,
-        notes: 'Shift Clocked In (9:00 PM – 2:00 AM Shift)',
+        notes: 'Shift Clocked In (${widget.currentUser.shiftTiming})',
       );
       widget.onAddAttendance(newRecord);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Clocked in successfully at $timeStr! 9 PM – 2 AM shift active.'),
+          content: Text('Clocked in successfully at $timeStr! Shift active.'),
           backgroundColor: CobaltTheme.statusSuccess,
           behavior: SnackBarBehavior.floating,
         ),
@@ -431,9 +432,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      'Standard Shift: 9:00 PM – 2:00 AM',
-                      style: TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
+                    Text(
+                      'Standard Shift: ${widget.currentUser.shiftTiming}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
                     ),
                   ],
                 ),
@@ -462,7 +463,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             children: [
               _buildMetricPill('CLOCK IN', _clockInTimeFormatted, Icons.login_rounded, const Color(0xFF10B981)),
               const SizedBox(width: 8),
-              _buildMetricPill('SHIFT TARGET', '5h 00m', Icons.timer_outlined, CobaltTheme.purplePrimary),
+              _buildMetricPill('SHIFT TARGET', widget.currentUser.shiftTarget, Icons.timer_outlined, CobaltTheme.purplePrimary),
               const SizedBox(width: 8),
               _buildMetricPill('OVERTIME', _overtimeFormatted, Icons.bolt_rounded, const Color(0xFFF59E0B)),
             ],

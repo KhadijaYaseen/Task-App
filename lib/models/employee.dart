@@ -6,6 +6,8 @@ class Employee {
   final String? email;
   final String? password;
   final bool isAdmin;
+  final String shiftTiming;
+  final String shiftTarget;
 
   const Employee({
     required this.id,
@@ -15,6 +17,8 @@ class Employee {
     this.email,
     this.password,
     this.isAdmin = false,
+    this.shiftTiming = '8:00 PM – 12:00 AM',
+    this.shiftTarget = '4h 00m',
   });
 
   static const Employee saleem = Employee(
@@ -72,6 +76,8 @@ class Employee {
       email: json['email'] as String?,
       password: json['password'] as String?,
       isAdmin: json['is_admin'] == true,
+      shiftTiming: json['shift_timing'] as String? ?? '8:00 PM – 12:00 AM',
+      shiftTarget: json['shift_target'] as String? ?? '4h 00m',
     );
   }
 
@@ -84,6 +90,8 @@ class Employee {
       'email': email,
       'password': password ?? 'password123',
       'is_admin': isAdmin,
+      'shift_timing': shiftTiming,
+      'shift_target': shiftTarget,
     };
   }
 }
