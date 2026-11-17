@@ -32,10 +32,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   int _secondsLogged = 0;
   String _clockInTimeFormatted = '8:44 PM';
 
+  // Editable shift timing (local override — user can change from UI)
+  late String _shiftTiming;
+  late String _shiftTarget;
+
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(2026, 11, 1);
+    _shiftTiming = widget.currentUser.shiftTiming;
+    _shiftTarget = widget.currentUser.shiftTarget;
     if (widget.currentUser.isAdmin) {
       _adminSelectedEmployee = null; // null = View All, or select specific
       _isClockedIn = true; // Admin shown as clocked in by default for dashboard
@@ -44,6 +50,100 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _adminSelectedEmployee = widget.currentUser;
       _isClockedIn = false; // Team member starts fresh — must tap Clock In
     }
+  }
+
+  // ── Shift Timing Edit Dialog ─────────────────────────────────────────────
+  void _showEditShiftDialog() {
+    final startCtrl = TextEditingController(
+      text: _shiftTiming.split('–').first.trim(),
+    );
+    final endCtrl = TextEditingController(
+      text: _shiftTiming.contains('–') ? _shiftTiming.split('–').last.trim() : '',
+    );
+    final targetCtrl = TextEditingController(
+      text: RegExp(r'(\d+)').firstMatch(_shiftTarget)?.group(1) ?? '4',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CobaltTheme.paper,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.schedule_rounded, color: CobaltTheme.purplePrimary, size: 20),
+            SizedBox(width: 8),
+            Text('Edit Shift Timing', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: CobaltTheme.ink)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: startCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Shift Start (e.g. 8:00 PM)',
+                prefixIcon: Icon(Icons.login_rounded, size: 18),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: endCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Shift End (e.g. 12:00 AM)',
+                prefixIcon: Icon(Icons.logout_rounded, size: 18),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: targetCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Target Hours (e.g. 4)',
+                prefixIcon: Icon(Icons.timer_outlined, size: 18),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: CobaltTheme.muted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CobaltTheme.purplePrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              final start = startCtrl.text.trim();
+              final end = endCtrl.text.trim();
+              final hrs = int.tryParse(targetCtrl.text.trim()) ?? 4;
+              final mins = (hrs * 60 % 60).toString().padLeft(2, '0');
+              if (start.isNotEmpty && end.isNotEmpty) {
+                setState(() {
+                  _shiftTiming = '$start – $end';
+                  _shiftTarget = '${hrs}h ${mins}m';
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Shift updated: $start – $end ($hrs h target)'),
+                    backgroundColor: CobaltTheme.purplePrimary,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            },
+            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startTimer() {
@@ -75,8 +175,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   String get _overtimeFormatted {
-    // Parse target hours from shiftTarget string like '4h 00m' or '5h 00m'
-    final targetMatch = RegExp(r'(\d+)h').firstMatch(widget.currentUser.shiftTarget);
+    // Parse target hours from local _shiftTarget (editable by user)
+    final targetMatch = RegExp(r'(\d+)h').firstMatch(_shiftTarget);
     final targetHours = targetMatch != null ? int.parse(targetMatch.group(1)!) : 4;
     final targetSeconds = targetHours * 3600;
     if (_secondsLogged > targetSeconds) {
@@ -434,9 +534,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      'Standard Shift: ${widget.currentUser.shiftTiming}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
+                    GestureDetector(
+                      onTap: _showEditShiftDialog,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Standard Shift: $_shiftTiming',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.edit_rounded, size: 11, color: Color(0xFFC7D2FE)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -465,7 +575,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             children: [
               _buildMetricPill('CLOCK IN', _clockInTimeFormatted, Icons.login_rounded, const Color(0xFF10B981)),
               const SizedBox(width: 8),
-              _buildMetricPill('SHIFT TARGET', widget.currentUser.shiftTarget, Icons.timer_outlined, CobaltTheme.purplePrimary),
+              _buildMetricPill('SHIFT TARGET', _shiftTarget, Icons.timer_outlined, CobaltTheme.purplePrimary),
               const SizedBox(width: 8),
               _buildMetricPill('OVERTIME', _overtimeFormatted, Icons.bolt_rounded, const Color(0xFFF59E0B)),
             ],

@@ -698,7 +698,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: 'Tasks',
                     icon: Icons.checklist_rounded,
                     isSmall: true,
-                    variant: CobaltKeyVariant.neutral,
+                    variant: CobaltKeyVariant.primary,
                     onPressed: () {
                       setState(() {
                         _currentTabIndex = 0;
