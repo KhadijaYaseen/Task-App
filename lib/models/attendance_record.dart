@@ -128,7 +128,18 @@ class AttendanceRecord {
         notes: 'Team Mentorship & Review',
       ),
 
-      // Khadija Yaseen Records (Verified 19 Oct - 16 Nov)
+      // Khadija Yaseen Records (Verified 19 Oct - 17 Nov)
+      AttendanceRecord(
+        id: 'att_ky_28',
+        employeeId: khadija.id,
+        employeeName: khadija.name,
+        date: DateTime(2026, 11, 17),
+        checkInTime: '8:30 PM',
+        checkOutTime: null,
+        hours: 0.0,
+        status: AttendanceStatus.present,
+        notes: 'Architecture Sync Call with Saleem & Sprint Review (Ongoing Shift)',
+      ),
       AttendanceRecord(
         id: 'att_ky_27',
         employeeId: khadija.id,

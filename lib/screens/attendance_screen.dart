@@ -25,12 +25,12 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen> {
   late DateTime _selectedMonth;
   Employee? _adminSelectedEmployee;
-  bool _isClockedIn = true;
+  bool _isClockedIn = false;
   DateTime? _selectedDate;
 
   Timer? _tickerTimer;
-  int _secondsLogged = 4 * 3600 + 15 * 60 + 30; // 04:15:30 baseline
-  String _clockInTimeFormatted = '09:00 PM';
+  int _secondsLogged = 0;
+  String _clockInTimeFormatted = '8:44 PM';
 
   @override
   void initState() {
@@ -38,11 +38,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _selectedMonth = DateTime(2026, 11, 1);
     if (widget.currentUser.isAdmin) {
       _adminSelectedEmployee = null; // null = View All, or select specific
+      _isClockedIn = true; // Admin shown as clocked in by default for dashboard
+      _startTimer();
     } else {
       _adminSelectedEmployee = widget.currentUser;
-    }
-    if (_isClockedIn) {
-      _startTimer();
+      _isClockedIn = false; // Team member starts fresh — must tap Clock In
     }
   }
 
@@ -75,7 +75,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   String get _overtimeFormatted {
-    final targetHours = widget.currentUser.shiftTarget.contains('5') ? 5 : 4;
+    // Parse target hours from shiftTarget string like '4h 00m' or '5h 00m'
+    final targetMatch = RegExp(r'(\d+)h').firstMatch(widget.currentUser.shiftTarget);
+    final targetHours = targetMatch != null ? int.parse(targetMatch.group(1)!) : 4;
     final targetSeconds = targetHours * 3600;
     if (_secondsLogged > targetSeconds) {
       final overtimeSeconds = _secondsLogged - targetSeconds;
