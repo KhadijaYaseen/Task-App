@@ -511,7 +511,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
+                Flexible(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
@@ -539,9 +540,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Standard Shift: $_shiftTiming',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
+                          Flexible(
+                            child: Text(
+                              'Standard Shift: $_shiftTiming',
+                              style: const TextStyle(fontSize: 11, color: Color(0xFFC7D2FE)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           const SizedBox(width: 4),
                           const Icon(Icons.edit_rounded, size: 11, color: Color(0xFFC7D2FE)),
@@ -549,6 +553,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
                 ElevatedButton.icon(
                   onPressed: _toggleClockIn,
