@@ -144,12 +144,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _attendanceRecords = widget.initialAttendanceRecords != null
         ? List.from(widget.initialAttendanceRecords!)
         : AttendanceRecord.getSampleRecords(widget.employees);
+    _loadSupabaseAttendance();
+  }
+
+  void _loadSupabaseAttendance() async {
+    try {
+      final cloudRecords = await SupabaseService.instance.fetchAttendanceRecords();
+      if (cloudRecords.isNotEmpty && mounted) {
+        setState(() {
+          _attendanceRecords = cloudRecords;
+        });
+      }
+    } catch (_) {}
   }
 
   void _handleAddAttendance(AttendanceRecord newRecord) {
     setState(() {
       _attendanceRecords.insert(0, newRecord);
     });
+    // Asynchronous cloud sync (safe - falls back silently if table is not created)
+    SupabaseService.instance.insertAttendanceRecord(newRecord);
     if (widget.onAddAttendance != null) {
       widget.onAddAttendance!(newRecord);
     }

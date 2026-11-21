@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/employee.dart';
 import '../models/task_item.dart';
+import '../models/attendance_record.dart';
 
 class SupabaseService {
   static final SupabaseService instance = SupabaseService._internal();
@@ -227,6 +228,55 @@ class SupabaseService {
       return res.statusCode == 200 || res.statusCode == 204;
     } catch (_) {
       return false;
+    }
+  }
+
+  // --- ATTENDANCE CRUD (Supabase Sync with Graceful Local Fallback) ---
+
+  Future<List<AttendanceRecord>> fetchAttendanceRecords({List<Employee> employees = const []}) async {
+    if (!isConfigured) return AttendanceRecord.getSampleRecords(employees);
+    try {
+      final uri = Uri.parse('$baseUrl/attendance_records?select=*&order=date.desc');
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        if (list.isNotEmpty) {
+          return list.map((e) => AttendanceRecord.fromJson(e as Map<String, dynamic>)).toList();
+        }
+      }
+      return AttendanceRecord.getSampleRecords(employees);
+    } catch (_) {
+      return AttendanceRecord.getSampleRecords(employees);
+    }
+  }
+
+  Future<AttendanceRecord?> insertAttendanceRecord(AttendanceRecord record) async {
+    if (!isConfigured) return record;
+    try {
+      final uri = Uri.parse('$baseUrl/attendance_records');
+      final res = await http.post(uri, headers: _headers, body: jsonEncode(record.toJson()));
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        if (list.isNotEmpty) return AttendanceRecord.fromJson(list.first as Map<String, dynamic>);
+      }
+      return record;
+    } catch (_) {
+      return record;
+    }
+  }
+
+  Future<AttendanceRecord?> updateAttendanceRecord(AttendanceRecord record) async {
+    if (!isConfigured) return record;
+    try {
+      final uri = Uri.parse('$baseUrl/attendance_records?id=eq.${record.id}');
+      final res = await http.patch(uri, headers: _headers, body: jsonEncode(record.toJson()));
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        if (list.isNotEmpty) return AttendanceRecord.fromJson(list.first as Map<String, dynamic>);
+      }
+      return record;
+    } catch (_) {
+      return record;
     }
   }
 }
