@@ -197,13 +197,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (_adminSelectedEmployee == null) {
         return widget.attendanceRecords;
       }
+      final targetFirst = _adminSelectedEmployee!.name.toLowerCase().split(' ').first;
       return widget.attendanceRecords
-          .where((r) => r.employeeId == _adminSelectedEmployee!.id)
+          .where((r) =>
+              r.employeeId == _adminSelectedEmployee!.id ||
+              r.employeeName.toLowerCase().contains(targetFirst))
           .toList();
     } else {
       // STRICT PRIVACY: Non-admin only sees THEIR OWN records!
+      final myFirst = widget.currentUser.name.toLowerCase().split(' ').first;
       return widget.attendanceRecords
-          .where((r) => r.employeeId == widget.currentUser.id)
+          .where((r) =>
+              r.employeeId == widget.currentUser.id ||
+              (myFirst.isNotEmpty && r.employeeName.toLowerCase().contains(myFirst)))
           .toList();
     }
   }
