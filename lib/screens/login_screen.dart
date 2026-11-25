@@ -668,7 +668,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
 
         const Text(
           'Select Your Profile',
@@ -678,18 +678,18 @@ class _LoginScreenState extends State<LoginScreen> {
             color: CobaltTheme.ink2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
 
         // Member Selection Cards
         ...regularMembers.map((member) {
           final isSelected = _selectedMember?.id == member.id;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 5),
             child: InkWell(
               onTap: () => setState(() => _selectedMember = member),
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected ? CobaltTheme.purpleWash : Colors.white,
                   borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
@@ -701,18 +701,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 16,
+                      radius: 14,
                       backgroundColor: isSelected ? CobaltTheme.purplePrimary : CobaltTheme.paper3,
                       child: Text(
                         member.initials,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: isSelected ? Colors.white : CobaltTheme.ink,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -720,7 +720,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             member.name,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: CobaltTheme.ink,
                             ),
@@ -728,7 +728,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             member.email ?? member.role,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: CobaltTheme.muted,
                             ),
                           ),
@@ -738,7 +738,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (isSelected)
                       const Icon(
                         Icons.check_circle,
-                        size: 18,
+                        size: 16,
                         color: CobaltTheme.accent,
                       ),
                   ],
@@ -748,7 +748,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
 
         // Forgot Password link
         Align(

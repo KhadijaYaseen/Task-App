@@ -56,13 +56,23 @@ class Employee {
     id: 'emp_4',
     name: 'Zain Ahmed',
     role: 'Backend Developer',
-    initials: 'ZA',
+    initials: 'ZN',
     email: 'zain@khawajalabs.com',
     password: 'password123',
     isAdmin: false,
   );
 
-  static List<Employee> get initialEmployees => [saleem, khadija];
+  static const Employee zubair = Employee(
+    id: 'emp_5',
+    name: 'Zubair Ahmed',
+    role: 'QA / Software Engineer',
+    initials: 'ZA',
+    email: 'zubair@khawajalabs.com',
+    password: 'password123',
+    isAdmin: false,
+  );
+
+  static List<Employee> get initialEmployees => [saleem, khadija, zubair, hamza, zain];
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(

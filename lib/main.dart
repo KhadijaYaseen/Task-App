@@ -7,6 +7,7 @@ import 'screens/login_screen.dart';
 import 'screens/team_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/attendance_screen.dart';
+import 'services/local_storage_service.dart';
 import 'services/supabase_service.dart';
 import 'theme/cobalt_theme.dart';
 import 'widgets/cobalt_key.dart';
@@ -41,8 +42,14 @@ class _TaskAppState extends State<TaskApp> {
       if (mounted) {
         setState(() {
           if (emps.isNotEmpty) {
+            final Map<String, Employee> empMap = {
+              for (var e in Employee.initialEmployees) e.id: e,
+            };
+            for (var e in emps) {
+              empMap[e.id] = e;
+            }
             _employees.clear();
-            _employees.addAll(emps);
+            _employees.addAll(empMap.values);
           }
           if (tasks.isNotEmpty) {
             _tasks.clear();
@@ -99,6 +106,7 @@ class _TaskAppState extends State<TaskApp> {
               onLogout: _handleLogout,
               onAddEmployee: _handleAddEmployee,
               onDeleteEmployee: _handleDeleteEmployee,
+              initialFilterIndex: _currentUser!.isAdmin ? 0 : 1,
             ),
     );
   }
@@ -113,6 +121,7 @@ class DashboardScreen extends StatefulWidget {
   final Function(Employee emp)? onDeleteEmployee;
   final List<AttendanceRecord>? initialAttendanceRecords;
   final Function(AttendanceRecord newRecord)? onAddAttendance;
+  final int initialFilterIndex;
 
   const DashboardScreen({
     super.key,
@@ -124,6 +133,7 @@ class DashboardScreen extends StatefulWidget {
     this.onDeleteEmployee,
     this.initialAttendanceRecords,
     this.onAddAttendance,
+    this.initialFilterIndex = 0,
   });
 
   @override
@@ -132,7 +142,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentTabIndex = 0; // 0: Tasks, 1: Attendance, 2: Analytics
-  int _selectedFilterIndex = 0; // 0: All, 1: My Tasks, 2: In Progress, 3: Completed
+  late int _selectedFilterIndex;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   String? _hoveredTaskId;
@@ -141,29 +151,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedFilterIndex = widget.initialFilterIndex;
     _attendanceRecords = widget.initialAttendanceRecords != null
         ? List.from(widget.initialAttendanceRecords!)
         : AttendanceRecord.getSampleRecords(widget.employees);
-    _loadSupabaseAttendance();
+    _loadLocalAndCloudAttendance();
   }
 
-  void _loadSupabaseAttendance() async {
+  void _loadLocalAndCloudAttendance() async {
+    // 1. Instantly load offline-persisted records from local disk (resilient to force-stop/restarts)
+    try {
+      final localRecords = await LocalStorageService.instance.loadAttendanceRecords();
+      if (localRecords.isNotEmpty && mounted) {
+        setState(() {
+          _attendanceRecords = localRecords;
+        });
+      }
+    } catch (_) {}
+
+    // 2. Sync any pending offline records to cloud
+    try {
+      await LocalStorageService.instance.syncPendingWithCloud();
+    } catch (_) {}
+
+    // 3. Fetch latest from Supabase if online
     try {
       final cloudRecords = await SupabaseService.instance.fetchAttendanceRecords();
       if (cloudRecords.isNotEmpty && mounted) {
         setState(() {
           _attendanceRecords = cloudRecords;
         });
+        await LocalStorageService.instance.saveAttendanceRecords(cloudRecords);
       }
     } catch (_) {}
   }
 
-  void _handleAddAttendance(AttendanceRecord newRecord) {
+  void _handleAddAttendance(AttendanceRecord newRecord) async {
     setState(() {
       _attendanceRecords.insert(0, newRecord);
     });
-    // Asynchronous cloud sync (safe - falls back silently if table is not created)
-    SupabaseService.instance.insertAttendanceRecord(newRecord);
+    // Immediate persistent local save so record survives offline app restarts
+    await LocalStorageService.instance.persistRecord(newRecord);
+    // Cloud sync in background
+    SupabaseService.instance.insertAttendanceRecord(newRecord).then((res) {
+      if (res != null) {
+        LocalStorageService.instance.syncPendingWithCloud();
+      }
+    });
     if (widget.onAddAttendance != null) {
       widget.onAddAttendance!(newRecord);
     }
@@ -193,7 +227,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (_selectedFilterIndex) {
       case 1:
         // Filter dynamically by active current user's ID
-        return list.where((t) => t.assignee.id == widget.currentUser.id).toList();
+        final myFirst = widget.currentUser.name.toLowerCase().split(' ').first;
+        return list.where((t) =>
+            t.assignee.id == widget.currentUser.id ||
+            (myFirst.isNotEmpty && t.assignee.name.toLowerCase().contains(myFirst))).toList();
       case 2:
         return list.where((t) => t.status == TaskStatus.inProgress).toList();
       case 3:
@@ -931,7 +968,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedFilterIndex == 1
+                  _selectedFilterIndex == 1 && widget.tasks.isNotEmpty
                       ? 'My Deliverables (${_filteredTasks.length})'
                       : 'Deliverables & Milestones (${_filteredTasks.length})',
                   style: const TextStyle(
