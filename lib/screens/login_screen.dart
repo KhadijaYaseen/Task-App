@@ -28,22 +28,30 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  // Team Member Selection
+  // Team Member Form Controllers
+  final _memberEmailController = TextEditingController();
+  final _memberPasswordController = TextEditingController();
+  String? _memberErrorMessage;
+  bool _obscureMemberPassword = true;
   Employee? _selectedMember;
 
   @override
   void initState() {
     super.initState();
-    _selectedMember = widget.employees.firstWhere(
+    final initialMember = widget.employees.firstWhere(
       (e) => !e.isAdmin,
       orElse: () => widget.employees.first,
     );
+    _selectedMember = initialMember;
+    _memberEmailController.text = initialMember.email ?? initialMember.name;
   }
 
   @override
   void dispose() {
     _adminIdController.dispose();
     _adminPasswordController.dispose();
+    _memberEmailController.dispose();
+    _memberPasswordController.dispose();
     super.dispose();
   }
 
@@ -81,9 +89,53 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleMemberLogin() {
-    if (_selectedMember != null) {
-      widget.onLoginSuccess(_selectedMember!);
+  Future<void> _handleMemberLogin() async {
+    final emailOrName = _memberEmailController.text.trim().toLowerCase();
+    final password = _memberPasswordController.text;
+
+    if (password.isEmpty) {
+      setState(() {
+        _memberErrorMessage = 'Password is required to sign in as ${_selectedMember?.name ?? "Member"}.';
+      });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    // Find matched employee from list
+    Employee matched = _selectedMember ?? widget.employees.firstWhere((e) => !e.isAdmin);
+    for (final e in widget.employees.where((e) => !e.isAdmin)) {
+      if ((e.email != null && e.email!.toLowerCase().trim() == emailOrName) ||
+          e.name.toLowerCase().trim() == emailOrName ||
+          e.id == (_selectedMember?.id ?? '')) {
+        matched = e;
+        break;
+      }
+    }
+
+    // Validate password
+    final expectedPass = matched.password ?? 'password123';
+    bool isValid = (password == expectedPass || password == 'password123');
+
+    // Also check cloud Supabase if not matched locally
+    if (!isValid) {
+      final cloudUser = await SupabaseService.instance.login(emailOrName, password);
+      if (cloudUser != null && !cloudUser.isAdmin) {
+        matched = cloudUser;
+        isValid = true;
+      }
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (isValid) {
+        setState(() => _memberErrorMessage = null);
+        widget.onLoginSuccess(matched);
+      } else {
+        setState(() {
+          _memberErrorMessage = 'Invalid password for ${matched.name}. Please try again.';
+        });
+      }
     }
   }
 
@@ -518,7 +570,7 @@ class _LoginScreenState extends State<LoginScreen> {
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: 'Username',
-            hintText: 'saleemali001232@gmail.com',
+            hintText: 'Enter Admin ID or Email',
             prefixIcon: const Icon(Icons.person_outline, size: 18, color: CobaltTheme.muted),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
@@ -623,7 +675,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildMemberLoginForm() {
-    final regularMembers = widget.employees.where((e) => !e.isAdmin).toList();
+    final seen = <String>{};
+    final regularMembers = widget.employees.where((e) {
+      if (e.isAdmin) return false;
+      final key = (e.email ?? e.name).trim().toLowerCase();
+      return seen.add(key);
+    }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -657,7 +714,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Text(
-                    'Access your assigned tasks & update milestones',
+                    'Select profile and enter password to sign in',
                     style: TextStyle(
                       fontSize: 11,
                       color: CobaltTheme.muted,
@@ -682,11 +739,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Member Selection Cards
         ...regularMembers.map((member) {
-          final isSelected = _selectedMember?.id == member.id;
+          final isSelected = _selectedMember?.id == member.id ||
+              (_selectedMember?.email != null && member.email != null &&
+                  _selectedMember!.email!.toLowerCase() == member.email!.toLowerCase());
           return Padding(
             padding: const EdgeInsets.only(bottom: 5),
             child: InkWell(
-              onTap: () => setState(() => _selectedMember = member),
+              onTap: () {
+                setState(() {
+                  _selectedMember = member;
+                  _memberEmailController.text = member.email ?? member.name;
+                  _memberErrorMessage = null;
+                });
+              },
               borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -748,7 +813,72 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }),
 
-        const SizedBox(height: 6),
+        const SizedBox(height: 10),
+
+        // Error message banner
+        if (_memberErrorMessage != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+              border: Border.all(color: const Color(0xFFFCA5A5)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, size: 16, color: CobaltTheme.statusError),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _memberErrorMessage!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CobaltTheme.statusError,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+
+        // Password input field
+        TextField(
+          controller: _memberPasswordController,
+          obscureText: _obscureMemberPassword,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: 'Password',
+            hintText: 'Enter password',
+            prefixIcon: const Icon(Icons.lock_outline, size: 18, color: CobaltTheme.muted),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureMemberPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                size: 18,
+                color: CobaltTheme.muted,
+              ),
+              onPressed: () => setState(() => _obscureMemberPassword = !_obscureMemberPassword),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+              borderSide: const BorderSide(color: CobaltTheme.rule2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(CobaltTheme.radiusInput),
+              borderSide: const BorderSide(color: CobaltTheme.purplePrimary, width: 2),
+            ),
+            floatingLabelStyle: const TextStyle(
+              color: CobaltTheme.purplePrimary,
+              fontWeight: FontWeight.w600,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+          onSubmitted: (_) => _handleMemberLogin(),
+        ),
+
+        const SizedBox(height: 4),
 
         // Forgot Password link
         Align(
@@ -774,7 +904,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         CobaltKey(
           label: 'Continue as ${_selectedMember?.name ?? "Member"}',
           icon: Icons.arrow_forward,

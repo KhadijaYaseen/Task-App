@@ -59,7 +59,7 @@ void main() {
     expect(find.text('Continue as Khadija Yaseen'), findsOneWidget);
 
     // Login as Khadija Yaseen
-    await tester.ensureVisible(find.text('Continue as Khadija Yaseen'));
+    await tester.enterText(find.widgetWithText(TextField, 'Password').last, 'password123');
     await tester.ensureVisible(find.text('Continue as Khadija Yaseen'));
     await tester.tap(find.text('Continue as Khadija Yaseen'));
     await tester.pumpAndSettle();
@@ -347,6 +347,7 @@ void main() {
     // Switch to Team Member tab and login as Khadija Yaseen
     await tester.tap(find.text('🚀 Team Member'));
     await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Password').last, 'password123');
     await tester.ensureVisible(find.text('Continue as Khadija Yaseen'));
     await tester.tap(find.text('Continue as Khadija Yaseen'));
     await tester.pumpAndSettle();

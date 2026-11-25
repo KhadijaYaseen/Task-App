@@ -42,11 +42,15 @@ class _TaskAppState extends State<TaskApp> {
       if (mounted) {
         setState(() {
           if (emps.isNotEmpty) {
-            final Map<String, Employee> empMap = {
-              for (var e in Employee.initialEmployees) e.id: e,
-            };
+            final Map<String, Employee> empMap = {};
+            // Deduplicate by normalized email/name so seeded and remote records never duplicate
+            for (var e in Employee.initialEmployees) {
+              final key = (e.email ?? e.name).trim().toLowerCase();
+              empMap[key] = e;
+            }
             for (var e in emps) {
-              empMap[e.id] = e;
+              final key = (e.email ?? e.name).trim().toLowerCase();
+              empMap[key] = e;
             }
             _employees.clear();
             _employees.addAll(empMap.values);
